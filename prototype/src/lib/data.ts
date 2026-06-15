@@ -3,11 +3,15 @@
 import dealsJson from "../data/deals.json";
 import savingsJson from "../data/savings.json";
 import watchesJson from "../data/watches.json";
-import type { Deal, SavingsData, Watch } from "../types";
+import brandsJson from "../data/brands.json";
+import type { Deal, EnrolledBrand, SavingsData, Watch } from "../types";
 
 export const deals: Deal[] = (dealsJson as { deals: Deal[] }).deals;
 export const savings: SavingsData = savingsJson as unknown as SavingsData;
 export const watches: Watch[] = (watchesJson as { watches: Watch[] }).watches;
+export const enrolledBrands: EnrolledBrand[] = (
+  brandsJson as unknown as { brands: EnrolledBrand[] }
+).brands;
 
 export const publicDeals: Deal[] = deals.filter((d) => d.tier === "public");
 

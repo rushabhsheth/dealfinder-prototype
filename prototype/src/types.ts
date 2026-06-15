@@ -92,3 +92,46 @@ export interface Watch {
 
 /** Demo entitlement tier — drives which screens/feeds the user sees. */
 export type Tier = "free" | "trial" | "paid";
+
+// ── User preferences (Interest Survey "About you" → Settings → Preferences) ──
+export type TravelStyle = "budget" | "comfort" | "luxury";
+
+/**
+ * The four personalization inputs from the Interest Survey. Single source of
+ * truth on DemoContext, mirrored to localStorage (see USER_PREFERENCES_PRD.md).
+ * In the real app this becomes a `/me/preferences` record — same shape.
+ */
+export interface UserPreferences {
+  categories: string[]; // survey category labels, e.g. ["Travel", "Retail"]
+  brands: string[]; // favorite-brand labels, e.g. ["Delta", "Patagonia"]
+  homeAirport: string; // 3-letter IATA, uppercased, e.g. "SFO"
+  travelStyle: TravelStyle;
+}
+
+// ── Enrolled Brands (see ENROLLED_BRANDS_PRD.md) ──
+export type BrandSource = "enrolled" | "detected";
+export type BrandStatus = "active" | "paused" | "unsubscribed";
+
+/**
+ * A brand sending the user promos via DealFinder — either auto-enrolled by us
+ * or detected already in their inbox. Mock data in /src/data/brands.json; the
+ * user's live status changes are tracked as overrides on DemoContext.
+ */
+export interface EnrolledBrand {
+  id: string;
+  brand: string;
+  brandInitials: string;
+  category: DealCategory;
+  source: BrandSource; // we enrolled them vs. already in inbox
+  status: BrandStatus; // baseline status (before any user override)
+  enrolledAt: string; // ISO
+  enrolledReason: string | null; // "You picked Travel"
+  senderDomain: string; // e.g. patagonia.com — the promo sender
+  dealsSurfaced: number;
+  totalSaved: number; // USD, lifetime from this brand
+  lastOfferAt: string | null; // ISO
+  emailsPerMonth: number; // observed frequency
+  canOneClickUnsubscribe: boolean; // RFC 8058 List-Unsubscribe present
+  /** Deal IDs surfaced from this brand — links into existing Deal Detail. */
+  offerDealIds: string[];
+}

@@ -1,38 +1,43 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Mail,
-  PauseCircle,
-  Bell,
-  Trash2,
-  ShieldCheck,
-  ChevronRight,
-  CreditCard,
-  type LucideIcon,
-} from "lucide-react";
+import { Bell, ShieldCheck, CreditCard } from "lucide-react";
 import { savings } from "../lib/data";
 import { useDemo } from "../state/DemoContext";
 import { useToast } from "../components/Toast";
 import TopBar from "../components/TopBar";
+import { Group, Row, Toggle } from "../components/SettingsList";
+import ChipGroup from "../components/ChipGroup";
+import SegmentedControl from "../components/SegmentedControl";
+import { CATEGORY_OPTIONS, BRAND_OPTIONS, TRAVEL_STYLE_OPTIONS } from "../lib/preferences";
 
 /**
- * Screen 15 — Settings & Privacy Controls. The trust controls: disconnect
- * inbox, pause scanning, delete data, notifications, subscription status.
+ * Screen 15 — Settings. Plan/subscription, personalization Preferences, and
+ * notification controls. Inbox connection and "delete my data" now live on the
+ * separate Privacy screen so the deletion intent isn't mixed in here.
  */
 export default function Settings() {
   const navigate = useNavigate();
-  const { tier, downgrade, goPremium } = useDemo();
+  const { tier, downgrade, goPremium, preferences, setPreferences } = useDemo();
   const toast = useToast();
   const { trial } = savings;
 
-  const isPremium = tier === "trial" || tier === "paid";
-  const [scanning, setScanning] = useState(isPremium);
-  const [connected, setConnected] = useState(isPremium);
   const [notifyDrops, setNotifyDrops] = useState(true);
   const [notifyExpiry, setNotifyExpiry] = useState(true);
 
   const statusLabel =
-    tier === "paid" ? "Premium · annual" : tier === "trial" ? `Trial · day ${trial.dayOfTrial} of ${trial.lengthDays}` : "Free";
+    tier === "paid"
+      ? "Premium · annual"
+      : tier === "trial"
+      ? `Trial · day ${trial.dayOfTrial} of ${trial.lengthDays}`
+      : "Free";
+
+  const togglePref = (key: "categories" | "brands", value: string) => {
+    const list = preferences[key];
+    setPreferences({
+      [key]: list.includes(value) ? list.filter((v) => v !== value) : [...list, value],
+    });
+    toast.show("Saved");
+  };
 
   return (
     <div className="flex h-full flex-col bg-surface">
@@ -63,35 +68,56 @@ export default function Settings() {
           </Row>
         </Group>
 
-        {/* Privacy */}
-        <Group title="Inbox & privacy">
-          <Row
-            Icon={Mail}
-            title="Email connection"
-            subtitle={connected ? "Gmail · read-only" : "Disconnected"}
-          >
-            <Toggle
-              on={connected}
-              onChange={(v) => {
-                setConnected(v);
-                if (!v) setScanning(false);
-                toast.show(v ? "Inbox connected" : "Inbox disconnected");
-              }}
-            />
-          </Row>
-          <Row Icon={PauseCircle} title="Inbox scanning" subtitle={scanning ? "Active" : "Paused"}>
-            <Toggle
-              on={scanning}
-              onChange={(v) => {
-                if (v && !connected) {
-                  toast.show("Connect your inbox first");
-                  return;
+        {/* Preferences */}
+        <div className="mb-4">
+          <p className="mb-1.5 px-1 text-caption font-semibold uppercase tracking-wide text-ink-muted">
+            Preferences
+          </p>
+          <div className="space-y-5 rounded-card border border-hairline bg-card p-4 shadow-card">
+            <p className="-mt-0.5 text-caption text-ink-muted">
+              What you told us about you — edit anytime.
+            </p>
+
+            <PrefField label="What you shop for">
+              <ChipGroup
+                options={CATEGORY_OPTIONS}
+                selected={preferences.categories}
+                onToggle={(v) => togglePref("categories", v)}
+              />
+            </PrefField>
+
+            <PrefField label="Favorite brands">
+              <ChipGroup
+                options={BRAND_OPTIONS}
+                selected={preferences.brands}
+                onToggle={(v) => togglePref("brands", v)}
+              />
+            </PrefField>
+
+            <PrefField label="Home airport">
+              <input
+                value={preferences.homeAirport}
+                onChange={(e) =>
+                  setPreferences({ homeAirport: e.target.value.toUpperCase().slice(0, 3) })
                 }
-                setScanning(v);
-              }}
-            />
-          </Row>
-        </Group>
+                onBlur={() => toast.show("Saved")}
+                placeholder="e.g. SFO"
+                className="nums w-32 rounded-button border border-hairline bg-surface px-4 py-3 text-h2 uppercase tracking-wider text-ink outline-none focus:border-primary"
+              />
+            </PrefField>
+
+            <PrefField label="Travel style">
+              <SegmentedControl
+                options={TRAVEL_STYLE_OPTIONS}
+                value={preferences.travelStyle}
+                onChange={(v) => {
+                  setPreferences({ travelStyle: v });
+                  toast.show("Saved");
+                }}
+              />
+            </PrefField>
+          </div>
+        </div>
 
         {/* Notifications */}
         <Group title="Notifications">
@@ -103,28 +129,9 @@ export default function Settings() {
           </Row>
         </Group>
 
-        {/* Data */}
-        <Group title="Your data">
-          <button
-            onClick={() => toast.show("Data deletion requested")}
-            className="flex w-full items-center gap-3 px-4 py-3.5 text-left"
-          >
-            <Trash2 size={20} className="text-accent-pressed" />
-            <span className="flex-1">
-              <span className="block text-body font-semibold text-accent-pressed">
-                Delete my data
-              </span>
-              <span className="block text-caption text-ink-muted">
-                Remove everything we've scanned — no questions asked
-              </span>
-            </span>
-            <ChevronRight size={18} className="text-ink-muted" />
-          </button>
-        </Group>
-
         <p className="mt-4 flex items-center justify-center gap-1.5 px-6 text-center text-caption text-ink-muted">
-          <ShieldCheck size={14} className="text-primary" /> Read-only access. Ranking is never
-          influenced by payout.
+          <ShieldCheck size={14} className="text-primary" /> Ranking is never influenced by
+          payout.
         </p>
 
         {/* Demo convenience: jump back into premium */}
@@ -141,56 +148,11 @@ export default function Settings() {
   );
 }
 
-function Group({ title, children }: { title: string; children: React.ReactNode }) {
+function PrefField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="mb-4">
-      <p className="mb-1.5 px-1 text-caption font-semibold uppercase tracking-wide text-ink-muted">
-        {title}
-      </p>
-      <div className="divide-y divide-hairline overflow-hidden rounded-card border border-hairline bg-card shadow-card">
-        {children}
-      </div>
-    </div>
-  );
-}
-
-function Row({
-  Icon,
-  title,
-  subtitle,
-  children,
-}: {
-  Icon: LucideIcon;
-  title: string;
-  subtitle: string;
-  children?: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-center gap-3 px-4 py-3.5">
-      <Icon size={20} className="text-ink-muted" />
-      <div className="min-w-0 flex-1">
-        <p className="text-body font-semibold text-ink">{title}</p>
-        <p className="truncate text-caption text-ink-muted">{subtitle}</p>
-      </div>
+    <div>
+      <p className="mb-2 text-label font-semibold text-ink">{label}</p>
       {children}
     </div>
-  );
-}
-
-function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <button
-      onClick={() => onChange(!on)}
-      aria-pressed={on}
-      className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${
-        on ? "bg-primary" : "bg-hairline"
-      }`}
-    >
-      <span
-        className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-all ${
-          on ? "left-[22px]" : "left-0.5"
-        }`}
-      />
-    </button>
   );
 }

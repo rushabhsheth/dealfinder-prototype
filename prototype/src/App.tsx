@@ -18,6 +18,8 @@ import SavingsDashboard from "./screens/SavingsDashboard";
 import Paywall from "./screens/Paywall";
 import Subscribed from "./screens/Subscribed";
 import Settings from "./screens/Settings";
+import Privacy from "./screens/Privacy";
+import EnrolledBrands from "./screens/EnrolledBrands";
 
 export default function App() {
   return (
@@ -45,8 +47,10 @@ export default function App() {
           <Route path="/paywall" element={<Paywall />} />
           <Route path="/subscribed" element={<Subscribed />} />
 
-          {/* Trust */}
+          {/* Trust & control */}
+          <Route path="/brands" element={<EnrolledBrands />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/privacy" element={<Privacy />} />
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

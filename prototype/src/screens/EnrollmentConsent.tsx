@@ -73,8 +73,8 @@ export default function EnrollmentConsent() {
         </button>
 
         <p className="mt-3 flex items-center gap-1.5 text-caption text-ink-muted">
-          <Check size={14} className="text-savings" /> You stay in control — manage every
-          subscription in Settings.
+          <Check size={14} className="text-savings" /> You stay in control — manage every brand in
+          Enrolled Brands.
         </p>
       </div>
 

@@ -23,7 +23,9 @@ const JUMPS: { label: string; to: string }[] = [
   { label: "11 · Travel Watch", to: "/watches" },
   { label: "12 · Savings Dashboard", to: "/savings" },
   { label: "13 · Paywall ⭐", to: "/paywall" },
+  { label: "14 · Enrolled Brands", to: "/brands" },
   { label: "15 · Settings", to: "/settings" },
+  { label: "16 · Privacy", to: "/privacy" },
 ];
 
 const TIERS: Tier[] = ["free", "trial", "paid"];

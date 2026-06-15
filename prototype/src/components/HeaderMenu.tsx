@@ -5,15 +5,19 @@ import {
   X,
   Settings as SettingsIcon,
   ShieldCheck,
+  Lock,
+  Store,
   ChevronRight,
   Sparkles,
+  type LucideIcon,
 } from "lucide-react";
 import { useDemo } from "../state/DemoContext";
 
 /**
- * HeaderMenu — the top-right hamburger on the main tab screens. Opens a
- * right-side slide-over with the plan status and Settings & Privacy (which
- * moved out of the bottom nav).
+ * HeaderMenu — the top-left hamburger on the main tab screens. Opens a
+ * slide-over with plan status and the periodic trust/control surfaces:
+ * Enrolled Brands, Settings, and Privacy (kept separate so the "delete my
+ * data" intent isn't mixed in with settings).
  */
 export default function HeaderMenu() {
   const [open, setOpen] = useState(false);
@@ -68,19 +72,30 @@ export default function HeaderMenu() {
 
             {/* Items */}
             <nav className="mt-2 px-2">
-              <button
+              <Item
+                Icon={Store}
+                label="Enrolled brands"
+                onClick={() => {
+                  setOpen(false);
+                  navigate("/brands");
+                }}
+              />
+              <Item
+                Icon={SettingsIcon}
+                label="Settings"
                 onClick={() => {
                   setOpen(false);
                   navigate("/settings");
                 }}
-                className="flex w-full items-center gap-3 rounded-button px-3 py-3.5 text-left active:bg-surface"
-              >
-                <SettingsIcon size={20} className="text-ink-muted" />
-                <span className="flex-1 text-body font-semibold text-ink">
-                  Settings &amp; Privacy
-                </span>
-                <ChevronRight size={18} className="text-ink-muted" />
-              </button>
+              />
+              <Item
+                Icon={Lock}
+                label="Privacy"
+                onClick={() => {
+                  setOpen(false);
+                  navigate("/privacy");
+                }}
+              />
             </nav>
 
             <p className="mt-auto flex items-center gap-1.5 px-4 pb-8 text-caption text-ink-muted">
@@ -91,5 +106,26 @@ export default function HeaderMenu() {
         </div>
       )}
     </>
+  );
+}
+
+function Item({
+  Icon,
+  label,
+  onClick,
+}: {
+  Icon: LucideIcon;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex w-full items-center gap-3 rounded-button px-3 py-3.5 text-left active:bg-surface"
+    >
+      <Icon size={20} className="text-ink-muted" />
+      <span className="flex-1 text-body font-semibold text-ink">{label}</span>
+      <ChevronRight size={18} className="text-ink-muted" />
+    </button>
   );
 }

@@ -3,27 +3,33 @@ import { useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import PrimaryButton from "../components/PrimaryButton";
 import TopBar from "../components/TopBar";
+import ChipGroup from "../components/ChipGroup";
+import SegmentedControl from "../components/SegmentedControl";
+import { CATEGORY_OPTIONS, BRAND_OPTIONS, TRAVEL_STYLE_OPTIONS } from "../lib/preferences";
+import { useDemo } from "../state/DemoContext";
+import type { TravelStyle } from "../types";
 
 /**
  * Screen 4 — Interest Survey. Capture personalization inputs: categories,
- * favorite brands, home airport, travel style. All optional/skippable.
+ * favorite brands, home airport, travel style. Seeded from saved preferences;
+ * Continue persists them, Skip leaves whatever was already saved
+ * (USER_PREFERENCES_PRD.md §5.1).
  */
-const CATEGORIES = ["Travel", "Retail", "Dining", "Tech", "Home", "Fitness", "Beauty", "Kids"];
-const BRANDS = ["Delta", "Patagonia", "Marriott", "Sonos", "Allbirds", "Sweetgreen", "Nike", "Apple"];
-const TRAVEL_STYLES = ["Budget", "Comfort", "Luxury"];
-
 export default function InterestSurvey() {
   const navigate = useNavigate();
-  const [cats, setCats] = useState<string[]>(["Travel", "Retail"]);
-  const [brands, setBrands] = useState<string[]>(["Delta", "Patagonia"]);
-  const [airport, setAirport] = useState("SFO");
-  const [style, setStyle] = useState("Comfort");
+  const { preferences, setPreferences } = useDemo();
+  const [cats, setCats] = useState<string[]>(preferences.categories);
+  const [brands, setBrands] = useState<string[]>(preferences.brands);
+  const [airport, setAirport] = useState(preferences.homeAirport);
+  const [style, setStyle] = useState<TravelStyle>(preferences.travelStyle);
 
-  const toggle = (
-    value: string,
-    list: string[],
-    set: (v: string[]) => void
-  ) => set(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
+  const toggle = (value: string, list: string[], set: (v: string[]) => void) =>
+    set(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
+
+  const onContinue = () => {
+    setPreferences({ categories: cats, brands, homeAirport: airport, travelStyle: style });
+    navigate("/connect");
+  };
 
   return (
     <div className="flex h-full flex-col bg-surface">
@@ -39,11 +45,11 @@ export default function InterestSurvey() {
 
       <div className="no-scrollbar flex-1 overflow-y-auto px-4 pb-28 pt-3">
         <Section title="What do you shop for?">
-          <ChipGroup options={CATEGORIES} selected={cats} onToggle={(v) => toggle(v, cats, setCats)} />
+          <ChipGroup options={CATEGORY_OPTIONS} selected={cats} onToggle={(v) => toggle(v, cats, setCats)} />
         </Section>
 
         <Section title="Favorite brands">
-          <ChipGroup options={BRANDS} selected={brands} onToggle={(v) => toggle(v, brands, setBrands)} />
+          <ChipGroup options={BRAND_OPTIONS} selected={brands} onToggle={(v) => toggle(v, brands, setBrands)} />
         </Section>
 
         <Section title="Home airport">
@@ -56,26 +62,12 @@ export default function InterestSurvey() {
         </Section>
 
         <Section title="Travel style">
-          <div className="flex gap-2">
-            {TRAVEL_STYLES.map((s) => (
-              <button
-                key={s}
-                onClick={() => setStyle(s)}
-                className={`flex-1 rounded-button border py-2.5 text-label font-semibold ${
-                  style === s
-                    ? "border-primary bg-primary text-white"
-                    : "border-hairline bg-card text-ink-muted"
-                }`}
-              >
-                {s}
-              </button>
-            ))}
-          </div>
+          <SegmentedControl options={TRAVEL_STYLE_OPTIONS} value={style} onChange={setStyle} />
         </Section>
       </div>
 
       <div className="absolute bottom-0 left-0 right-0 z-20 border-t border-hairline bg-card/95 px-4 pb-6 pt-3 backdrop-blur">
-        <PrimaryButton onClick={() => navigate("/connect")}>
+        <PrimaryButton onClick={onContinue}>
           Continue <ArrowRight size={18} />
         </PrimaryButton>
         <button
@@ -94,37 +86,6 @@ function Section({ title, children }: { title: string; children: React.ReactNode
     <div className="mb-6">
       <h2 className="mb-2.5 text-h2 text-ink">{title}</h2>
       {children}
-    </div>
-  );
-}
-
-function ChipGroup({
-  options,
-  selected,
-  onToggle,
-}: {
-  options: string[];
-  selected: string[];
-  onToggle: (v: string) => void;
-}) {
-  return (
-    <div className="flex flex-wrap gap-2">
-      {options.map((o) => {
-        const active = selected.includes(o);
-        return (
-          <button
-            key={o}
-            onClick={() => onToggle(o)}
-            className={`rounded-badge border px-3.5 py-2 text-label font-semibold transition-colors ${
-              active
-                ? "border-primary bg-primary-tint text-primary-pressed"
-                : "border-hairline bg-card text-ink-muted"
-            }`}
-          >
-            {o}
-          </button>
-        );
-      })}
     </div>
   );
 }
