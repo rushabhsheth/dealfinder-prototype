@@ -8,12 +8,12 @@ interface NavItem {
 }
 
 const ITEMS: NavItem[] = [
-  { to: "/feed", label: "Feed", Icon: Home },
+  { to: "/feed", label: "Deals", Icon: Home },
   { to: "/watches", label: "Flights", Icon: Plane },
   { to: "/savings", label: "Savings", Icon: PiggyBank },
 ];
 
-/** BottomNav — Feed, Flights, Savings. Active item in teal. Settings now lives
+/** BottomNav — Deals, Flights, Savings. Active item in teal. Settings now lives
  *  in the top-right header menu (HeaderMenu). */
 export default function BottomNav() {
   return (
