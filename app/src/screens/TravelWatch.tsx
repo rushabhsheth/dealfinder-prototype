@@ -5,6 +5,7 @@ import { watches as seedWatches } from "../lib/data";
 import { usd } from "../lib/format";
 import type { Watch } from "../types";
 import BottomNav from "../components/BottomNav";
+import HeaderMenu from "../components/HeaderMenu";
 
 /**
  * Screen 11 — Travel Watch (premium). Set a route/price watch; one seeded
@@ -41,10 +42,15 @@ export default function TravelWatch() {
   return (
     <div className="flex h-full flex-col">
       <header className="shrink-0 bg-surface px-4 pb-2 pt-3">
-        <h1 className="text-h1 text-ink">Fare watches</h1>
-        <p className="mt-0.5 text-caption text-ink-muted">
-          We'll only ping you when a fare drops below your target.
-        </p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-h1 text-ink">Flight Fare Deals</h1>
+            <p className="mt-0.5 text-caption text-ink-muted">
+              We'll only ping you when a fare drops below your target.
+            </p>
+          </div>
+          <HeaderMenu />
+        </div>
       </header>
 
       <div className="no-scrollbar flex-1 overflow-y-auto px-4 pb-6">

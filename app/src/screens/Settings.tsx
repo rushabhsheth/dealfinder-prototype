@@ -13,7 +13,7 @@ import {
 import { savings } from "../lib/data";
 import { useDemo } from "../state/DemoContext";
 import { useToast } from "../components/Toast";
-import BottomNav from "../components/BottomNav";
+import TopBar from "../components/TopBar";
 
 /**
  * Screen 15 — Settings & Privacy Controls. The trust controls: disconnect
@@ -35,12 +35,10 @@ export default function Settings() {
     tier === "paid" ? "Premium · annual" : tier === "trial" ? `Trial · day ${trial.dayOfTrial} of ${trial.lengthDays}` : "Free";
 
   return (
-    <div className="flex h-full flex-col">
-      <header className="shrink-0 bg-surface px-4 pb-2 pt-3">
-        <h1 className="text-h1 text-ink">Settings</h1>
-      </header>
+    <div className="flex h-full flex-col bg-surface">
+      <TopBar back title="Settings" />
 
-      <div className="no-scrollbar flex-1 overflow-y-auto px-4 pb-6">
+      <div className="no-scrollbar flex-1 overflow-y-auto px-4 pb-8 pt-2">
         {/* Subscription */}
         <Group title="Subscription">
           <Row Icon={CreditCard} title="Plan" subtitle={statusLabel}>
@@ -139,8 +137,6 @@ export default function Settings() {
           </button>
         )}
       </div>
-
-      <BottomNav />
     </div>
   );
 }

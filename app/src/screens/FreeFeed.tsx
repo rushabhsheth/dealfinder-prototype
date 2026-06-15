@@ -6,6 +6,7 @@ import { useDemo } from "../state/DemoContext";
 import DealCard from "../components/DealCard";
 import CategoryChips from "../components/CategoryChips";
 import BottomNav from "../components/BottomNav";
+import HeaderMenu from "../components/HeaderMenu";
 
 /**
  * Screen 2 — Free Open-Deals Feed (non-personalized public deals), and
@@ -29,10 +30,15 @@ export default function FreeFeed() {
   return (
     <div className="flex h-full flex-col">
       <header className="shrink-0 bg-surface px-4 pb-3 pt-3">
-        <h1 className="text-h1 text-ink">Open deals</h1>
-        <p className="mt-0.5 inline-flex items-center gap-1 text-caption text-ink-muted">
-          <Lock size={12} /> Public deals · same for everyone
-        </p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-h1 text-ink">Open deals</h1>
+            <p className="mt-0.5 inline-flex items-center gap-1 text-caption text-ink-muted">
+              <Lock size={12} /> Public deals · same for everyone
+            </p>
+          </div>
+          <HeaderMenu />
+        </div>
       </header>
 
       <div className="no-scrollbar flex-1 overflow-y-auto px-4 pb-6">

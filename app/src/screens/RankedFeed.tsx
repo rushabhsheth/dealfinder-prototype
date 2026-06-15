@@ -6,6 +6,7 @@ import { usd } from "../lib/format";
 import { useDemo } from "../state/DemoContext";
 import DealCard from "../components/DealCard";
 import BottomNav from "../components/BottomNav";
+import HeaderMenu from "../components/HeaderMenu";
 
 /**
  * Screen 9 — Personalized Ranked Feed ⭐ (hero).
@@ -35,13 +36,16 @@ export default function RankedFeed() {
             </p>
             <h1 className="mt-0.5 text-h1 text-ink">Your deals</h1>
           </div>
-          <button
-            onClick={pullToRefresh}
-            aria-label="Refresh"
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-hairline bg-card text-ink-muted active:bg-primary-tint"
-          >
-            <RefreshCw size={18} className={refreshing ? "animate-spin" : ""} />
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={pullToRefresh}
+              aria-label="Refresh"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-hairline bg-card text-ink-muted active:bg-primary-tint"
+            >
+              <RefreshCw size={18} className={refreshing ? "animate-spin" : ""} />
+            </button>
+            <HeaderMenu />
+          </div>
         </div>
 
         <p className="mt-1.5 text-caption text-ink-muted">

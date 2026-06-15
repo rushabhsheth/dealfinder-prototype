@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { Home, Plane, PiggyBank, Settings, type LucideIcon } from "lucide-react";
+import { Home, Plane, PiggyBank, type LucideIcon } from "lucide-react";
 
 interface NavItem {
   to: string;
@@ -9,12 +9,12 @@ interface NavItem {
 
 const ITEMS: NavItem[] = [
   { to: "/feed", label: "Feed", Icon: Home },
-  { to: "/watches", label: "Watches", Icon: Plane },
+  { to: "/watches", label: "Flights", Icon: Plane },
   { to: "/savings", label: "Savings", Icon: PiggyBank },
-  { to: "/settings", label: "Settings", Icon: Settings },
 ];
 
-/** BottomNav — Feed, Watches, Savings, Settings. Active item in teal. */
+/** BottomNav — Feed, Flights, Savings. Active item in teal. Settings now lives
+ *  in the top-right header menu (HeaderMenu). */
 export default function BottomNav() {
   return (
     <nav className="z-20 shrink-0 border-t border-hairline bg-card/95 backdrop-blur">
