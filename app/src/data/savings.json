@@ -1,0 +1,41 @@
+{
+  "_comment": "Mock savings data for the Savings Summary, Savings Dashboard, and Paywall recap. 'today' for the demo is 2026-06-15. Trial started 2026-06-08 (day 7 of a 14-day trial).",
+  "trial": {
+    "lengthDays": 14,
+    "startedAt": "2026-06-08",
+    "endsAt": "2026-06-22",
+    "dayOfTrial": 7,
+    "annualPrice": 96,
+    "monthlyEquivalent": 8
+  },
+  "firstScan": {
+    "foundTotal": 214,
+    "offersFound": 11,
+    "scannedMessages": 1840,
+    "topDealIds": ["dl-001", "dl-004", "dl-002"]
+  },
+  "cumulative": {
+    "totalSaved": 392,
+    "dealsRedeemed": 4,
+    "averageSavingPercent": 31,
+    "byCategory": [
+      { "category": "travel", "saved": 248 },
+      { "category": "retail", "saved": 81 },
+      { "category": "dining", "saved": 38 },
+      { "category": "tech", "saved": 25 }
+    ],
+    "timeline": [
+      { "date": "2026-06-08", "saved": 0 },
+      { "date": "2026-06-09", "saved": 54 },
+      { "date": "2026-06-11", "saved": 92 },
+      { "date": "2026-06-13", "saved": 206 },
+      { "date": "2026-06-15", "saved": 392 }
+    ]
+  },
+  "redeemed": [
+    { "dealId": "dl-002", "brand": "Patagonia", "saved": 54, "redeemedAt": "2026-06-09" },
+    { "dealId": "dl-007", "brand": "Sweetgreen", "saved": 14, "redeemedAt": "2026-06-11" },
+    { "dealId": "dl-004", "brand": "Marriott", "saved": 248, "redeemedAt": "2026-06-13" },
+    { "dealId": "dl-005", "brand": "Sonos", "saved": 25, "redeemedAt": "2026-06-15" }
+  ]
+}

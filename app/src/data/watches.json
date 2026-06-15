@@ -1,0 +1,47 @@
+{
+  "_comment": "Mock travel watch data for the Travel Watch screen. 'today' for the demo is 2026-06-15. One watch is in an active fare-drop alert state to demo the alert.",
+  "watches": [
+    {
+      "id": "wt-001",
+      "origin": "SFO",
+      "originCity": "San Francisco",
+      "destination": "JFK",
+      "destinationCity": "New York",
+      "targetPrice": 300,
+      "currentPrice": 279,
+      "lowestSeen": 279,
+      "status": "alert",
+      "alertMessage": "Fare dropped to $279 — below your $300 target.",
+      "linkedDealId": "dl-001",
+      "createdAt": "2026-06-10"
+    },
+    {
+      "id": "wt-002",
+      "origin": "SFO",
+      "originCity": "San Francisco",
+      "destination": "OGG",
+      "destinationCity": "Maui",
+      "targetPrice": 450,
+      "currentPrice": 512,
+      "lowestSeen": 489,
+      "status": "watching",
+      "alertMessage": null,
+      "linkedDealId": null,
+      "createdAt": "2026-06-12"
+    },
+    {
+      "id": "wt-003",
+      "origin": "SFO",
+      "originCity": "San Francisco",
+      "destination": "LHR",
+      "destinationCity": "London",
+      "targetPrice": 650,
+      "currentPrice": 720,
+      "lowestSeen": 680,
+      "status": "watching",
+      "alertMessage": null,
+      "linkedDealId": null,
+      "createdAt": "2026-06-14"
+    }
+  ]
+}

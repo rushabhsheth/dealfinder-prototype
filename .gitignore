@@ -1,0 +1,13 @@
+node_modules
+dist
+dist-ssr
+*.local
+.DS_Store
+.~lock.*
+
+# Business docs — kept out of the repo (PRD, financial model, thesis, catalogs)
+PRDs/
+.vercel
+
+# Machine-local Claude Code settings
+.claude/settings.local.json
