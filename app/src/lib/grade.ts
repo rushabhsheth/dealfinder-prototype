@@ -4,7 +4,7 @@
 
 import type { Deal } from "../types";
 
-export type GradeLetter = "A" | "B" | "C" | "D";
+export type GradeLetter = "S" | "A" | "B" | "C" | "D";
 
 export interface Grade {
   letter: GradeLetter;
@@ -17,6 +17,7 @@ export interface Grade {
 }
 
 const LABELS: Record<GradeLetter, string> = {
+  S: "Exceptional — a top pick",
   A: "Great value for you",
   B: "Good value",
   C: "Fair value",
@@ -24,6 +25,8 @@ const LABELS: Record<GradeLetter, string> = {
 };
 
 const TONES: Record<GradeLetter, string> = {
+  // S gets the apricot hero pop so it clearly outranks the green A.
+  S: "bg-gradient-to-br from-accent to-accent-pressed text-white",
   A: "bg-savings text-white",
   B: "bg-primary text-white",
   C: "bg-urgency text-[#5e4a12]",
@@ -44,7 +47,7 @@ export function gradeForDeal(deal: Deal): Grade {
       : Math.round((savings * 0.85 + 0.1) * 100);
 
   const letter: GradeLetter =
-    score >= 85 ? "A" : score >= 70 ? "B" : score >= 55 ? "C" : "D";
+    score >= 88 ? "S" : score >= 75 ? "A" : score >= 60 ? "B" : score >= 45 ? "C" : "D";
 
   return { letter, score, label: LABELS[letter], tone: TONES[letter] };
 }
