@@ -4,14 +4,13 @@ import { ToastProvider } from "./components/Toast";
 import DemoMenu from "./components/DemoMenu";
 
 import ValueExplainer from "./screens/ValueExplainer";
-import FreeFeed from "./screens/FreeFeed";
+import Feed from "./screens/Feed";
 import TrialIntro from "./screens/TrialIntro";
 import InterestSurvey from "./screens/InterestSurvey";
 import ConnectEmail from "./screens/ConnectEmail";
 import EnrollmentConsent from "./screens/EnrollmentConsent";
 import FirstScan from "./screens/FirstScan";
 import SavingsSummary from "./screens/SavingsSummary";
-import RankedFeed from "./screens/RankedFeed";
 import DealDetail from "./screens/DealDetail";
 import TravelWatch from "./screens/TravelWatch";
 import SavingsDashboard from "./screens/SavingsDashboard";
@@ -26,7 +25,7 @@ export default function App() {
         <Routes>
           {/* Onboarding & free path */}
           <Route path="/" element={<ValueExplainer />} />
-          <Route path="/free" element={<FreeFeed />} />
+          <Route path="/free" element={<Navigate to="/feed" replace />} />
           <Route path="/trial" element={<TrialIntro />} />
           <Route path="/survey" element={<InterestSurvey />} />
           <Route path="/connect" element={<ConnectEmail />} />
@@ -34,8 +33,8 @@ export default function App() {
           <Route path="/scan" element={<FirstScan />} />
           <Route path="/summary" element={<SavingsSummary />} />
 
-          {/* Premium core (hero screens) */}
-          <Route path="/feed" element={<RankedFeed />} />
+          {/* Core (hero) */}
+          <Route path="/feed" element={<Feed />} />
           <Route path="/deal/:id" element={<DealDetail />} />
           <Route path="/watches" element={<TravelWatch />} />
           <Route path="/savings" element={<SavingsDashboard />} />
