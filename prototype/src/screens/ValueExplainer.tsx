@@ -1,11 +1,19 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Mail, Sparkles, ShieldCheck, ArrowRight, type LucideIcon } from "lucide-react";
+import {
+  Mail,
+  Sparkles,
+  ShieldCheck,
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight,
+  type LucideIcon,
+} from "lucide-react";
 import PrimaryButton from "../components/PrimaryButton";
 
 /**
- * Screen 1 — Value Explainer. Swipeable intro panels: what DealFinder does and
- * the "we work for you, not the brands" trust promise. No signup wall.
+ * Screen 1 — Value Explainer. Swipeable intro panels (navigated with the
+ * left/right arrows or dots), then one CTA into the onboarding flow.
  */
 interface Panel {
   Icon: LucideIcon;
@@ -35,26 +43,35 @@ export default function ValueExplainer() {
   const navigate = useNavigate();
   const [i, setI] = useState(0);
   const panel = PANELS[i];
-  const last = i === PANELS.length - 1;
+  const atStart = i === 0;
+  const atEnd = i === PANELS.length - 1;
 
   return (
     <div className="flex h-full flex-col bg-surface px-6 pb-8 pt-6">
-      <div className="flex justify-end">
-        <button
-          onClick={() => navigate("/free")}
-          className="text-label font-semibold text-ink-muted"
-        >
-          Skip
-        </button>
+      {/* App wordmark */}
+      <div className="flex items-center justify-center gap-2">
+        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-white">
+          <Sparkles size={16} strokeWidth={2.25} />
+        </span>
+        <span className="text-h2 font-bold tracking-tight text-ink">
+          Deal<span className="text-primary">Finder</span>
+        </span>
       </div>
 
-      {/* Panel */}
-      <div key={i} className="animate-fade-up flex flex-1 flex-col items-center justify-center text-center">
-        <div className="flex h-28 w-28 items-center justify-center rounded-[32px] bg-primary-tint text-primary">
-          <panel.Icon size={48} strokeWidth={1.75} />
+      {/* Panel with arrow navigation */}
+      <div className="flex flex-1 items-center gap-1">
+        <ArrowButton dir="left" disabled={atStart} onClick={() => setI(i - 1)} />
+        <div
+          key={i}
+          className="animate-fade-up flex flex-1 flex-col items-center justify-center text-center"
+        >
+          <div className="flex h-28 w-28 items-center justify-center rounded-[32px] bg-primary-tint text-primary">
+            <panel.Icon size={48} strokeWidth={1.75} />
+          </div>
+          <h1 className="mt-8 text-h1 text-ink">{panel.title}</h1>
+          <p className="mt-3 max-w-xs text-body text-ink-muted">{panel.body}</p>
         </div>
-        <h1 className="mt-8 text-h1 text-ink">{panel.title}</h1>
-        <p className="mt-3 max-w-xs text-body text-ink-muted">{panel.body}</p>
+        <ArrowButton dir="right" disabled={atEnd} onClick={() => setI(i + 1)} />
       </div>
 
       {/* Dots */}
@@ -71,24 +88,34 @@ export default function ValueExplainer() {
         ))}
       </div>
 
-      {/* Actions */}
-      <div className="space-y-2">
-        {last ? (
-          <PrimaryButton onClick={() => navigate("/free")}>
-            Browse deals <ArrowRight size={18} />
-          </PrimaryButton>
-        ) : (
-          <PrimaryButton onClick={() => setI(i + 1)}>
-            How it works <ArrowRight size={18} />
-          </PrimaryButton>
-        )}
-        <button
-          onClick={() => navigate("/free")}
-          className="w-full py-2 text-label font-semibold text-primary"
-        >
-          Browse deals — no signup
-        </button>
-      </div>
+      {/* Single CTA into onboarding */}
+      <PrimaryButton onClick={() => navigate("/trial")}>
+        Start finding deals <ArrowRight size={18} />
+      </PrimaryButton>
     </div>
+  );
+}
+
+function ArrowButton({
+  dir,
+  disabled,
+  onClick,
+}: {
+  dir: "left" | "right";
+  disabled: boolean;
+  onClick: () => void;
+}) {
+  const Icon = dir === "left" ? ChevronLeft : ChevronRight;
+  return (
+    <button
+      aria-label={dir === "left" ? "Previous" : "Next"}
+      onClick={onClick}
+      disabled={disabled}
+      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-hairline bg-card text-ink shadow-card transition active:scale-95 ${
+        disabled ? "pointer-events-none opacity-30" : ""
+      }`}
+    >
+      <Icon size={22} />
+    </button>
   );
 }
