@@ -44,10 +44,7 @@ export default function DealCard({ deal, showWhy = false, compact = false }: Pro
               </span>
             )}
             {!compact && (
-              <span className="ml-auto flex items-center gap-1 pl-1">
-                <span className="text-[11px] font-semibold uppercase tracking-wide text-ink-muted">
-                  Grade
-                </span>
+              <span className="ml-auto pl-1">
                 <DealGrade deal={deal} />
               </span>
             )}
