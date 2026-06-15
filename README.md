@@ -6,7 +6,7 @@ A clickable, mobile-first web prototype of DealFinder (an AI savings agent).
 ## Repo layout
 
 ```
-app/      the Vite + React web prototype  (run npm commands here)
+prototype/  the Vite + React web prototype  (run npm commands here)
 plans/    BUILD_PLAN.md · DESIGN_SYSTEM.md · SCREENS.md
 PRDs/     source requirements (PRD, financial model, services catalog)
 CLAUDE.md standing build instructions (repo root)
@@ -15,7 +15,7 @@ CLAUDE.md standing build instructions (repo root)
 ## Run it
 
 ```bash
-cd app
+cd prototype
 npm install
 npm run dev      # → http://localhost:5173
 ```
@@ -42,7 +42,7 @@ show the downgrade. "Reset" clears demo state.
 ## App structure
 
 ```
-app/src/
+prototype/src/
   components/   PhoneFrame, DealCard, SavingsBadge, UrgencyBadge, BottomNav,
                 PrimaryButton, TopBar, Toast, DemoMenu, …
   screens/      One file per screen in plans/SCREENS.md (RankedFeed, DealDetail, …)
@@ -52,7 +52,7 @@ app/src/
 ```
 
 Design tokens (the "Sunset Tide" palette + type scale) live in
-`app/tailwind.config.ts` and `app/src/index.css`; components use named tokens
+`prototype/tailwind.config.ts` and `prototype/src/index.css`; components use named tokens
 (`bg-primary`, `text-savings`, …) rather than raw hex.
 
 ## Notable behavior

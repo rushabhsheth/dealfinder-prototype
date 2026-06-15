@@ -12,7 +12,7 @@ one-tap redeem**, and the **trial → paywall** moment feel real and demo-able.
 
 ## Hard rules
 1. **Mock data only.** No real Gmail/Outlook OAuth, no real email scanning, no real
-   billing. All deals, offers, and "scan results" come from local JSON in `app/src/data`.
+   billing. All deals, offers, and "scan results" come from local JSON in `prototype/src/data`.
    Where a real integration would happen (connect inbox, subscribe), build a
    **convincing mocked screen** that advances the flow — do not wire a backend.
 2. **No backend in the prototype.** Everything runs client-side. State lives in React
@@ -31,20 +31,20 @@ one-tap redeem**, and the **trial → paywall** moment feel real and demo-able.
 ## Tech stack
 - **React + Vite + TypeScript**
 - **Tailwind CSS** for styling, with design tokens from `plans/DESIGN_SYSTEM.md` mapped
-  into the Tailwind theme (`app/tailwind.config.ts`).
+  into the Tailwind theme (`prototype/tailwind.config.ts`).
 - Routing: `react-router` for screen-to-screen navigation.
 - Icons: `lucide-react`.
 - No state library needed; React context + hooks is enough.
 
 ## Repo layout
-- `app/` — the Vite + React web prototype (run all `npm` commands from here).
+- `prototype/` — the Vite + React web prototype (run all `npm` commands from here).
 - `plans/` — `BUILD_PLAN.md`, `DESIGN_SYSTEM.md`, `SCREENS.md`.
 - `PRDs/` — source requirements (`DealFinder_PRD.docx`, models, catalogs).
 - `CLAUDE.md` — this file, at the repo root.
 
 ## Project conventions
-- Components in `app/src/components`, screens in `app/src/screens`, mock data in
-  `app/src/data`.
+- Components in `prototype/src/components`, screens in `prototype/src/screens`, mock data in
+  `prototype/src/data`.
 - One screen per file, named to match `plans/SCREENS.md` (e.g. `RankedFeed.tsx`).
 - Keep components presentational; mock data is imported, never fetched.
 - Reusable pieces: `DealCard`, `SavingsBadge`, `UrgencyBadge`, `PhoneFrame`,
