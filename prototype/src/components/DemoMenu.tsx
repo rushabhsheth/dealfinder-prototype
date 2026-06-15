@@ -12,8 +12,7 @@ import type { Tier } from "../types";
 const JUMPS: { label: string; to: string }[] = [
   { label: "1 · Value Explainer", to: "/" },
   { label: "2 · Free Feed", to: "/free" },
-  { label: "3 · Trial Intro", to: "/trial" },
-  { label: "4 · Interest Survey", to: "/survey" },
+  { label: "3 · Meet Agent", to: "/trial" },
   { label: "5 · Connect Email", to: "/connect" },
   { label: "6 · Enrollment Consent", to: "/enroll" },
   { label: "7 · First Scan", to: "/scan" },

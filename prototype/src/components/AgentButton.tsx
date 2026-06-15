@@ -9,7 +9,7 @@ export default function AgentButton() {
   const navigate = useNavigate();
   return (
     <button
-      aria-label="Chat with your agent"
+      aria-label="Chat with Scout"
       onClick={() => navigate("/chat")}
       className="flex h-10 w-10 items-center justify-center rounded-full text-primary active:bg-primary-tint"
     >

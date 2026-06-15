@@ -13,12 +13,10 @@ import { Group, Row, Toggle } from "../components/SettingsList";
  */
 export default function Privacy() {
   const navigate = useNavigate();
-  const { tier } = useDemo();
+  const { inboxConnected, setInboxConnected } = useDemo();
   const toast = useToast();
 
-  const isPremium = tier === "trial" || tier === "paid";
-  const [scanning, setScanning] = useState(isPremium);
-  const [connected, setConnected] = useState(isPremium);
+  const [scanning, setScanning] = useState(inboxConnected);
 
   return (
     <div className="flex h-full flex-col bg-surface">
@@ -30,26 +28,35 @@ export default function Privacy() {
           <Row
             Icon={Mail}
             title="Email connection"
-            subtitle={connected ? "Gmail · read-only" : "Disconnected"}
+            subtitle={inboxConnected ? "Gmail · read-only" : "Not connected"}
           >
-            <Toggle
-              on={connected}
-              onChange={(v) => {
-                setConnected(v);
-                if (!v) setScanning(false);
-                toast.show(v ? "Inbox connected" : "Inbox disconnected");
-              }}
-            />
+            {inboxConnected ? (
+              <Toggle
+                on={inboxConnected}
+                onChange={() => {
+                  setInboxConnected(false);
+                  setScanning(false);
+                  toast.show("Inbox disconnected");
+                }}
+              />
+            ) : (
+              <button
+                onClick={() => navigate("/connect", { state: { connectFlow: true } })}
+                className="text-label font-semibold text-accent-pressed"
+              >
+                Connect
+              </button>
+            )}
           </Row>
           <Row
             Icon={PauseCircle}
             title="Inbox scanning"
-            subtitle={scanning ? "Active" : "Paused"}
+            subtitle={inboxConnected ? (scanning ? "Active" : "Paused") : "Connect inbox first"}
           >
             <Toggle
-              on={scanning}
+              on={scanning && inboxConnected}
               onChange={(v) => {
-                if (v && !connected) {
+                if (v && !inboxConnected) {
                   toast.show("Connect your inbox first");
                   return;
                 }

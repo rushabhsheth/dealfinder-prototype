@@ -60,7 +60,7 @@ export default function Assistant() {
         back
         title={
           <span className="inline-flex items-center gap-1.5">
-            <Sparkles size={16} className="text-primary" /> Your agent
+            <Sparkles size={16} className="text-primary" /> Scout
           </span>
         }
       />
@@ -117,7 +117,7 @@ export default function Assistant() {
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask your agent…"
+            placeholder="Ask Scout…"
             className="h-11 flex-1 rounded-full border border-hairline bg-surface px-4 text-body text-ink outline-none focus:border-primary"
           />
           <button

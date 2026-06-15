@@ -49,7 +49,7 @@ export default function Paywall() {
           </p>
         </div>
 
-        <h1 className="mt-6 text-center text-h1 text-ink">Keep your savings agent</h1>
+        <h1 className="mt-6 text-center text-h1 text-ink">Keep Scout on the case</h1>
         <p className="mt-1.5 text-center text-body text-ink-muted">
           Your trial ends in {trial.lengthDays - trial.dayOfTrial} days. Stay premium to keep finding
           deals automatically.

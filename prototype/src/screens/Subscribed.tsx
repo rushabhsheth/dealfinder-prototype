@@ -20,8 +20,8 @@ export default function Subscribed() {
 
       <h1 className="animate-fade-up mt-6 text-h1 text-ink">You're all set</h1>
       <p className="animate-fade-up mt-2 text-body text-ink-muted">
-        Premium is active. Your savings agent keeps scanning, ranking, and watching fares for you —
-        for {usd(trial.annualPrice)}/year.
+        Premium is active. Scout keeps scanning, ranking, and watching fares for you — for{" "}
+        {usd(trial.annualPrice)}/year.
       </p>
 
       <div className="mt-8 w-full">

@@ -19,7 +19,7 @@ const DEFAULT_FOLLOWUPS = [
 ];
 
 export const GREETING: AgentReply = {
-  text: "Hi — I'm your DealFinder agent. I scan, rank, and track deals for you. What can I find?",
+  text: "Hi — I'm Scout, your DealFinder agent. I scan, rank, and track deals for you. What can I find?",
   followups: DEFAULT_FOLLOWUPS,
 };
 

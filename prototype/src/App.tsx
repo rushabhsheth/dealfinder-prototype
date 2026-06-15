@@ -6,7 +6,6 @@ import DemoMenu from "./components/DemoMenu";
 import ValueExplainer from "./screens/ValueExplainer";
 import Feed from "./screens/Feed";
 import TrialIntro from "./screens/TrialIntro";
-import InterestSurvey from "./screens/InterestSurvey";
 import ConnectEmail from "./screens/ConnectEmail";
 import EnrollmentConsent from "./screens/EnrollmentConsent";
 import FirstScan from "./screens/FirstScan";
@@ -30,7 +29,8 @@ export default function App() {
           <Route path="/" element={<ValueExplainer />} />
           <Route path="/free" element={<Navigate to="/feed" replace />} />
           <Route path="/trial" element={<TrialIntro />} />
-          <Route path="/survey" element={<InterestSurvey />} />
+          {/* Standalone connect / enroll — not in the chat onboarding, kept for
+              connecting later from Settings → Privacy. */}
           <Route path="/connect" element={<ConnectEmail />} />
           <Route path="/enroll" element={<EnrollmentConsent />} />
           <Route path="/scan" element={<FirstScan />} />

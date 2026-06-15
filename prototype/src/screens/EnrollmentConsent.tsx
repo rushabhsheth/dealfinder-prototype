@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Check, ArrowRight } from "lucide-react";
 import TopBar from "../components/TopBar";
 import PrimaryButton from "../components/PrimaryButton";
@@ -17,6 +17,10 @@ const SAMPLE = [
 
 export default function EnrollmentConsent() {
   const navigate = useNavigate();
+  // When reached by reconnecting from Privacy, return there; otherwise this is
+  // the (legacy) onboarding tail into the scan.
+  const connectFlow = (useLocation().state as { connectFlow?: boolean } | null)?.connectFlow;
+  const next = connectFlow ? "/privacy" : "/scan";
   const [enabled, setEnabled] = useState(true);
 
   return (
@@ -79,8 +83,15 @@ export default function EnrollmentConsent() {
       </div>
 
       <div className="absolute bottom-0 left-0 right-0 z-20 border-t border-hairline bg-card/95 px-4 pb-6 pt-3 backdrop-blur">
-        <PrimaryButton onClick={() => navigate("/scan")}>
-          {enabled ? "Enroll & start scan" : "Continue without enrolling"} <ArrowRight size={18} />
+        <PrimaryButton onClick={() => navigate(next)}>
+          {connectFlow
+            ? enabled
+              ? "Enroll & finish"
+              : "Done"
+            : enabled
+            ? "Enroll & start scan"
+            : "Continue without enrolling"}{" "}
+          <ArrowRight size={18} />
         </PrimaryButton>
       </div>
     </div>

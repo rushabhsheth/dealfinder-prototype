@@ -101,7 +101,7 @@ export default function Settings() {
                   setPreferences({ homeAirport: e.target.value.toUpperCase().slice(0, 3) })
                 }
                 onBlur={() => toast.show("Saved")}
-                placeholder="e.g. SFO"
+                placeholder="e.g. JFK"
                 className="nums w-32 rounded-button border border-hairline bg-surface px-4 py-3 text-h2 uppercase tracking-wider text-ink outline-none focus:border-primary"
               />
             </PrefField>

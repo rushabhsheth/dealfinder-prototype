@@ -31,6 +31,10 @@ interface DemoState {
    *  unsubscribe / re-enroll), overriding each brand's baseline status. */
   brandStatus: Record<string, BrandStatus>;
   setBrandStatus: (brandId: string, status: BrandStatus) => void;
+  /** Whether the inbox is connected. Set during onboarding or later from
+   *  Privacy via the Connect Inbox screen. */
+  inboxConnected: boolean;
+  setInboxConnected: (connected: boolean) => void;
   /** Convert/restart premium: trial or paid, clears the downgrade flag. */
   goPremium: (t: "trial" | "paid") => void;
   /** Decline the paywall: drop to free and mark downgraded. */
@@ -52,6 +56,7 @@ interface Persisted {
   redeemedIds: string[];
   preferences: UserPreferences;
   brandStatus: Record<string, BrandStatus>;
+  inboxConnected: boolean;
 }
 
 function load(): Persisted {
@@ -61,6 +66,7 @@ function load(): Persisted {
     redeemedIds: [],
     preferences: DEFAULT_PREFERENCES,
     brandStatus: {},
+    inboxConnected: true,
   };
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -80,6 +86,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
   const [brandStatus, setBrandStatusState] = useState<Record<string, BrandStatus>>(
     initial.brandStatus
   );
+  const [inboxConnected, setInboxConnected] = useState<boolean>(initial.inboxConnected);
   // In-memory only — intentionally not persisted, so the nudge reappears on reload.
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
 
@@ -87,12 +94,12 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     try {
       localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({ tier, downgraded, redeemedIds, preferences, brandStatus })
+        JSON.stringify({ tier, downgraded, redeemedIds, preferences, brandStatus, inboxConnected })
       );
     } catch {
       // ignore quota / private-mode errors
     }
-  }, [tier, downgraded, redeemedIds, preferences, brandStatus]);
+  }, [tier, downgraded, redeemedIds, preferences, brandStatus, inboxConnected]);
 
   const setTier = useCallback((t: Tier) => setTierState(t), []);
 
@@ -131,6 +138,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     setRedeemedIds([]);
     setPreferencesState(DEFAULT_PREFERENCES);
     setBrandStatusState({});
+    setInboxConnected(true);
   }, []);
 
   const value = useMemo<DemoState>(
@@ -145,6 +153,8 @@ export function DemoProvider({ children }: { children: ReactNode }) {
       setPreferences,
       brandStatus,
       setBrandStatus,
+      inboxConnected,
+      setInboxConnected,
       goPremium,
       downgrade,
       nudgeDismissed,
@@ -162,6 +172,8 @@ export function DemoProvider({ children }: { children: ReactNode }) {
       setPreferences,
       brandStatus,
       setBrandStatus,
+      inboxConnected,
+      setInboxConnected,
       goPremium,
       downgrade,
       nudgeDismissed,

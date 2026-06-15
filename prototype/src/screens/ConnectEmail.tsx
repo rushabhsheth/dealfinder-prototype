@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Check, X, Lock, Trash2, Eye } from "lucide-react";
+import { useDemo } from "../state/DemoContext";
 import TopBar from "../components/TopBar";
 import PrimaryButton from "../components/PrimaryButton";
 
@@ -22,12 +23,18 @@ const CANT_SEE = [
 
 export default function ConnectEmail() {
   const navigate = useNavigate();
+  const connectFlow = (useLocation().state as { connectFlow?: boolean } | null)?.connectFlow;
+  const { setInboxConnected } = useDemo();
   const [connecting, setConnecting] = useState<null | "Gmail" | "Outlook">(null);
 
   function connect(provider: "Gmail" | "Outlook") {
     setConnecting(provider);
-    // Mocked OAuth handshake — just a short delay, then continue the flow.
-    setTimeout(() => navigate("/enroll"), 1300);
+    // Mocked OAuth handshake — just a short delay, then continue. Carry the
+    // connectFlow flag so enrollment returns to Privacy when reconnecting later.
+    setTimeout(() => {
+      setInboxConnected(true);
+      navigate("/enroll", { state: { connectFlow } });
+    }, 1300);
   }
 
   return (
