@@ -7,15 +7,16 @@ import type { ReactNode } from "react";
  */
 export default function PhoneFrame({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-screen w-full items-center justify-center p-0 sm:p-6">
+    <div className="flex min-h-[100dvh] w-full items-center justify-center p-0 sm:min-h-screen sm:p-6">
       <div
-        className="relative flex h-[844px] max-h-screen w-full max-w-phone flex-col overflow-hidden bg-surface shadow-2xl sm:rounded-[44px] sm:border-[10px] sm:border-[#1c1c1e]"
+        className="relative flex h-[100dvh] w-full flex-col overflow-hidden bg-surface sm:h-[844px] sm:max-h-screen sm:max-w-phone sm:rounded-[44px] sm:border-[10px] sm:border-[#1c1c1e] sm:shadow-2xl"
       >
-        {/* Notch — desktop only */}
+        {/* Simulated device chrome — desktop only; a real phone draws its own. */}
+        {/* Notch */}
         <div className="pointer-events-none absolute left-1/2 top-0 z-30 hidden h-6 w-36 -translate-x-1/2 rounded-b-2xl bg-[#1c1c1e] sm:block" />
 
         {/* Status bar */}
-        <div className="relative z-20 flex h-11 shrink-0 items-center justify-between px-6 pt-1 text-[13px] font-semibold text-ink">
+        <div className="relative z-20 hidden h-11 shrink-0 items-center justify-between px-6 pt-1 text-[13px] font-semibold text-ink sm:flex">
           <span className="nums">9:41</span>
           <div className="flex items-center gap-1.5">
             <SignalIcon />
