@@ -6,6 +6,7 @@ import { useDemo } from "../state/DemoContext";
 import BrandMark from "./BrandMark";
 import SavingsBadge from "./SavingsBadge";
 import UrgencyBadge from "./UrgencyBadge";
+import DealGrade from "./DealGrade";
 
 interface Props {
   deal: Deal;
@@ -40,6 +41,14 @@ export default function DealCard({ deal, showWhy = false, compact = false }: Pro
             {redeemed && (
               <span className="inline-flex items-center gap-0.5 rounded-badge bg-savings-tint px-1.5 py-0.5 text-[11px] font-semibold text-savings">
                 <Check size={11} strokeWidth={3} /> Redeemed
+              </span>
+            )}
+            {!compact && (
+              <span className="ml-auto flex items-center gap-1 pl-1">
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-ink-muted">
+                  Grade
+                </span>
+                <DealGrade deal={deal} />
               </span>
             )}
           </div>

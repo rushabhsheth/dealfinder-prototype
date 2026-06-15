@@ -3,12 +3,14 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Copy, Check, ExternalLink, Sparkles, ShieldCheck } from "lucide-react";
 import { getDeal } from "../lib/data";
 import { expiryLabel, isUrgent, usd } from "../lib/format";
+import { gradeForDeal } from "../lib/grade";
 import { useDemo } from "../state/DemoContext";
 import { useToast } from "../components/Toast";
 import TopBar from "../components/TopBar";
 import BrandMark from "../components/BrandMark";
 import SavingsBadge from "../components/SavingsBadge";
 import UrgencyBadge from "../components/UrgencyBadge";
+import DealGrade from "../components/DealGrade";
 import PrimaryButton from "../components/PrimaryButton";
 
 /**
@@ -89,6 +91,19 @@ export default function DealDetail() {
               {expiryLabel(deal.expiresAt)}
             </span>
           )}
+        </div>
+
+        {/* Deal grade */}
+        <div className="mt-4 flex items-center gap-3 rounded-card border border-hairline bg-card p-3.5 shadow-card">
+          <DealGrade deal={deal} size="lg" />
+          <div className="min-w-0 flex-1">
+            <p className="text-label font-semibold text-ink">
+              Deal grade {gradeForDeal(deal).letter} · {gradeForDeal(deal).label}
+            </p>
+            <p className="text-caption text-ink-muted">
+              Scored on fit, savings, and timing — never on what a brand pays.
+            </p>
+          </div>
         </div>
 
         {/* Price comparison */}
