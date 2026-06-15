@@ -9,9 +9,11 @@ import {
   Store,
   ChevronRight,
   Sparkles,
+  LogOut,
   type LucideIcon,
 } from "lucide-react";
 import { useDemo } from "../state/DemoContext";
+import { useToast } from "./Toast";
 
 /**
  * HeaderMenu — the top-left hamburger on the main tab screens. Opens a
@@ -22,10 +24,20 @@ import { useDemo } from "../state/DemoContext";
 export default function HeaderMenu() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
-  const { tier } = useDemo();
+  const { tier, reset } = useDemo();
+  const toast = useToast();
 
   const planLabel =
     tier === "paid" ? "Premium · annual" : tier === "trial" ? "Free trial" : "Free";
+
+  // No real auth in the prototype — "sign out" clears demo state and returns to
+  // the front-door screen.
+  const signOut = () => {
+    setOpen(false);
+    reset();
+    navigate("/");
+    toast.show("Signed out");
+  };
 
   return (
     <>
@@ -98,10 +110,21 @@ export default function HeaderMenu() {
               />
             </nav>
 
-            <p className="mt-auto flex items-center gap-1.5 px-4 pb-8 text-caption text-ink-muted">
-              <ShieldCheck size={14} className="shrink-0 text-primary" /> Read-only access ·
-              payout-blind ranking
-            </p>
+            <div className="mt-auto">
+              <div className="border-t border-hairline px-2 pt-2">
+                <button
+                  onClick={signOut}
+                  className="flex w-full items-center gap-3 rounded-button px-3 py-3.5 text-left active:bg-surface"
+                >
+                  <LogOut size={20} className="text-ink-muted" />
+                  <span className="flex-1 text-body font-semibold text-ink">Sign out</span>
+                </button>
+              </div>
+              <p className="flex items-center gap-1.5 px-4 pb-8 pt-2 text-caption text-ink-muted">
+                <ShieldCheck size={14} className="shrink-0 text-primary" /> Read-only access ·
+                payout-blind ranking
+              </p>
+            </div>
           </div>
         </div>
       )}
