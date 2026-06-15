@@ -3,7 +3,7 @@ import { TrendingUp, Receipt, Percent, type LucideIcon } from "lucide-react";
 import { savings, CATEGORY_LABELS } from "../lib/data";
 import { usd, shortDate } from "../lib/format";
 import BottomNav from "../components/BottomNav";
-import HeaderMenu from "../components/HeaderMenu";
+import TopAppBar from "../components/TopAppBar";
 
 /**
  * Screen 12 — Savings Dashboard. Cumulative savings (the retention hook):
@@ -16,12 +16,7 @@ export default function SavingsDashboard() {
 
   return (
     <div className="flex h-full flex-col">
-      <header className="shrink-0 bg-surface px-4 pb-2 pt-3">
-        <div className="flex items-center justify-between">
-          <h1 className="text-h1 text-ink">Your savings</h1>
-          <HeaderMenu />
-        </div>
-      </header>
+      <TopAppBar title="Your savings" />
 
       <div className="no-scrollbar flex-1 overflow-y-auto px-4 pb-6">
         {/* Hero total */}

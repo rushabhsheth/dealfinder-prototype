@@ -34,7 +34,7 @@ export default function HeaderMenu() {
       </button>
 
       {open && (
-        <div className="absolute inset-0 z-40 flex justify-end">
+        <div className="absolute inset-0 z-40 flex justify-start">
           {/* Scrim */}
           <button
             aria-label="Close menu"
@@ -42,8 +42,8 @@ export default function HeaderMenu() {
             className="absolute inset-0 bg-ink/40"
           />
 
-          {/* Panel */}
-          <div className="animate-slide-in-right relative z-10 flex h-full w-72 max-w-[82%] flex-col bg-card shadow-2xl">
+          {/* Panel — slides in from the left (hamburger lives top-left) */}
+          <div className="animate-slide-in-left relative z-10 flex h-full w-72 max-w-[82%] flex-col bg-card shadow-2xl">
             <div className="flex items-center justify-between border-b border-hairline px-4 py-4">
               <span className="text-h2 text-ink">Menu</span>
               <button

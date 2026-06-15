@@ -27,6 +27,10 @@ interface DemoState {
   goPremium: (t: "trial" | "paid") => void;
   /** Decline the paywall: drop to free and mark downgraded. */
   downgrade: () => void;
+  /** Connect-inbox nudge. Dismissal is in-memory only, so it returns on every
+   *  fresh app open (per request) but stays hidden while navigating around. */
+  nudgeDismissed: boolean;
+  dismissNudge: () => void;
   reset: () => void;
 }
 
@@ -56,6 +60,8 @@ export function DemoProvider({ children }: { children: ReactNode }) {
   const [tier, setTierState] = useState<Tier>(initial.tier);
   const [downgraded, setDowngraded] = useState<boolean>(initial.downgraded);
   const [redeemedIds, setRedeemedIds] = useState<string[]>(initial.redeemedIds);
+  // In-memory only — intentionally not persisted, so the nudge reappears on reload.
+  const [nudgeDismissed, setNudgeDismissed] = useState(false);
 
   useEffect(() => {
     try {
@@ -79,6 +85,8 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     setTierState("free");
     setDowngraded(true);
   }, []);
+
+  const dismissNudge = useCallback(() => setNudgeDismissed(true), []);
 
   const redeem = useCallback((dealId: string) => {
     setRedeemedIds((ids) => (ids.includes(dealId) ? ids : [...ids, dealId]));
@@ -105,9 +113,23 @@ export function DemoProvider({ children }: { children: ReactNode }) {
       hasRedeemed,
       goPremium,
       downgrade,
+      nudgeDismissed,
+      dismissNudge,
       reset,
     }),
-    [tier, setTier, downgraded, redeemedIds, redeem, hasRedeemed, goPremium, downgrade, reset]
+    [
+      tier,
+      setTier,
+      downgraded,
+      redeemedIds,
+      redeem,
+      hasRedeemed,
+      goPremium,
+      downgrade,
+      nudgeDismissed,
+      dismissNudge,
+      reset,
+    ]
   );
 
   return <DemoContext.Provider value={value}>{children}</DemoContext.Provider>;

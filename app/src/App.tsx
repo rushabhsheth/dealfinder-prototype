@@ -12,6 +12,7 @@ import EnrollmentConsent from "./screens/EnrollmentConsent";
 import FirstScan from "./screens/FirstScan";
 import SavingsSummary from "./screens/SavingsSummary";
 import DealDetail from "./screens/DealDetail";
+import Assistant from "./screens/Assistant";
 import TravelWatch from "./screens/TravelWatch";
 import SavingsDashboard from "./screens/SavingsDashboard";
 import Paywall from "./screens/Paywall";
@@ -36,6 +37,7 @@ export default function App() {
           {/* Core (hero) */}
           <Route path="/feed" element={<Feed />} />
           <Route path="/deal/:id" element={<DealDetail />} />
+          <Route path="/chat" element={<Assistant />} />
           <Route path="/watches" element={<TravelWatch />} />
           <Route path="/savings" element={<SavingsDashboard />} />
 

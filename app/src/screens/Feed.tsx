@@ -1,21 +1,14 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Sparkles,
-  RefreshCw,
-  ShieldCheck,
-  Lock,
-  ArrowRight,
-  PauseCircle,
-  Mail,
-} from "lucide-react";
+import { Sparkles, ShieldCheck, Lock, ArrowRight, PauseCircle, Mail } from "lucide-react";
 import { personalizedDeals, publicDeals, CATEGORY_LABELS, savings } from "../lib/data";
 import { usd } from "../lib/format";
 import { useDemo } from "../state/DemoContext";
 import DealCard from "../components/DealCard";
 import CategoryChips from "../components/CategoryChips";
 import BottomNav from "../components/BottomNav";
-import HeaderMenu from "../components/HeaderMenu";
+import TopAppBar from "../components/TopAppBar";
+import UpsellNudge from "../components/UpsellNudge";
 
 /**
  * Screens 2 + 9 + 14 — the unified Feed. One tab, two views via a segmented
@@ -29,12 +22,11 @@ type View = "foryou" | "all";
 
 export default function Feed() {
   const navigate = useNavigate();
-  const { tier, downgraded } = useDemo();
+  const { tier, downgraded, nudgeDismissed } = useDemo();
   const isPremium = tier === "trial" || tier === "paid";
 
   const [view, setView] = useState<View>(isPremium ? "foryou" : "all");
   const [category, setCategory] = useState("All");
-  const [refreshing, setRefreshing] = useState(false);
 
   const totalSavings = personalizedDeals.reduce((sum, d) => sum + d.savingsAmount, 0);
   const categories = useMemo(
@@ -45,41 +37,24 @@ export default function Feed() {
     (d) => category === "All" || CATEGORY_LABELS[d.category] === category
   );
 
-  function pullToRefresh() {
-    setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 900);
-  }
+  // Connect-inbox nudge: free users, on app open, until dismissed for the session.
+  const showNudge = !isPremium && !nudgeDismissed;
 
   return (
     <div className="flex h-full flex-col">
-      <header className="shrink-0 bg-surface px-4 pb-2 pt-3">
-        <div className="flex items-center justify-between">
-          <h1 className="text-h1 text-ink">Deals</h1>
-          <div className="flex items-center gap-1">
-            {view === "foryou" && isPremium && (
-              <button
-                onClick={pullToRefresh}
-                aria-label="Refresh"
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-hairline bg-card text-ink-muted active:bg-primary-tint"
-              >
-                <RefreshCw size={18} className={refreshing ? "animate-spin" : ""} />
-              </button>
-            )}
-            <HeaderMenu />
-          </div>
-        </div>
-
-        {/* Segmented control */}
-        <div className="mt-2 flex rounded-button bg-hairline/50 p-1">
+      <TopAppBar title="Deals">
+        <div className="flex rounded-button bg-hairline/50 p-1">
           <Segment label="For You" active={view === "foryou"} onClick={() => setView("foryou")} />
           <Segment label="All Deals" active={view === "all"} onClick={() => setView("all")} />
         </div>
-      </header>
+      </TopAppBar>
 
-      <div className="no-scrollbar flex-1 overflow-y-auto px-4 pb-6">
+      <div className="no-scrollbar flex-1 overflow-y-auto px-4 pb-6 pt-2">
+        {showNudge && <UpsellNudge />}
+
         {view === "foryou" ? (
           isPremium ? (
-            <ForYou refreshing={refreshing} tier={tier} totalSavings={totalSavings} navigate={navigate} />
+            <ForYou tier={tier} totalSavings={totalSavings} navigate={navigate} />
           ) : (
             <ForYouLocked onStartTrial={() => navigate("/trial")} />
           )
@@ -123,24 +98,20 @@ function Segment({
 
 /* ---- For You (premium): personalized ranked deals ---- */
 function ForYou({
-  refreshing,
   tier,
   totalSavings,
   navigate,
 }: {
-  refreshing: boolean;
   tier: string;
   totalSavings: number;
   navigate: (to: string) => void;
 }) {
   return (
     <>
-      <p className="py-2 text-caption text-ink-muted">
+      <p className="pb-2 text-caption text-ink-muted">
         <span className="nums font-semibold text-savings">{usd(totalSavings)}</span> in offers
         ranked for you · {personalizedDeals.length} live · found in your inbox
       </p>
-
-      {refreshing && <p className="py-1 text-center text-caption text-ink-muted">Re-ranking…</p>}
 
       <div className="space-y-3">
         {personalizedDeals.map((deal, i) => (
@@ -172,7 +143,7 @@ function ForYou({
 /* ---- For You (free): connect-inbox upsell ---- */
 function ForYouLocked({ onStartTrial }: { onStartTrial: () => void }) {
   return (
-    <div className="flex flex-col items-center px-2 pt-10 text-center">
+    <div className="flex flex-col items-center px-2 pt-8 text-center">
       <div className="relative flex h-20 w-20 items-center justify-center rounded-[28px] bg-primary-tint text-primary">
         <Mail size={36} strokeWidth={1.75} />
         <span className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-surface bg-accent text-white">
@@ -217,7 +188,7 @@ function AllDeals({
   return (
     <>
       {downgraded && (
-        <div className="mb-3 mt-2 rounded-card border border-hairline bg-card p-4 shadow-card">
+        <div className="mb-3 rounded-card border border-hairline bg-card p-4 shadow-card">
           <p className="flex items-center gap-1.5 text-label font-semibold text-ink">
             <PauseCircle size={16} className="text-ink-muted" /> Premium is paused
           </p>
@@ -234,7 +205,7 @@ function AllDeals({
         </div>
       )}
 
-      <p className="mb-2 mt-2 inline-flex items-center gap-1 text-caption text-ink-muted">
+      <p className="mb-2 inline-flex items-center gap-1 text-caption text-ink-muted">
         <Lock size={12} /> Public deals · same for everyone
       </p>
 

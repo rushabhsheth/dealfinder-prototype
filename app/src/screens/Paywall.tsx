@@ -13,6 +13,7 @@ import PrimaryButton from "../components/PrimaryButton";
 const BENEFITS = [
   "Personalized, ranked deal feed",
   "Inbox auto-scan for offers you'd miss",
+  "A chat agent that finds deals on request",
   "Travel fare watches & drop alerts",
   "Auto-enroll in high-value newsletters",
 ];

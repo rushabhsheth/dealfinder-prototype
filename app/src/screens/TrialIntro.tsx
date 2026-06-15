@@ -1,5 +1,12 @@
 import { useNavigate } from "react-router-dom";
-import { ScanSearch, Sparkles, UserCheck, ArrowRight, type LucideIcon } from "lucide-react";
+import {
+  ScanSearch,
+  Sparkles,
+  UserCheck,
+  MessageSquareText,
+  ArrowRight,
+  type LucideIcon,
+} from "lucide-react";
 import { savings } from "../lib/data";
 import PrimaryButton from "../components/PrimaryButton";
 import TopBar from "../components/TopBar";
@@ -29,6 +36,11 @@ const BENEFITS: Benefit[] = [
     Icon: UserCheck,
     title: "Auto-enroll",
     body: "We join the high-value newsletters worth it, and you can unsubscribe in one tap.",
+  },
+  {
+    Icon: MessageSquareText,
+    title: "Chat with your agent",
+    body: "Ask for a flight deal, what's ending soon, or how much you've saved — anytime.",
   },
 ];
 

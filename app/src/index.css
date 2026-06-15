@@ -95,6 +95,18 @@
   animation: slide-in-right 220ms ease-out;
 }
 
+@keyframes slide-in-left {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+.animate-slide-in-left {
+  animation: slide-in-left 220ms ease-out;
+}
+
 @keyframes pulse-ring {
   0% {
     transform: scale(0.9);
