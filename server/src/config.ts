@@ -1,12 +1,14 @@
+import "dotenv/config";
 import { z } from "zod";
 
 /**
  * Typed, validated configuration loaded from environment variables.
  *
- * Secrets live ONLY in the environment (server/.env in dev, the host secret
- * store in prod) — never in the repo or in client code. Importing this module
- * validates the env up front and fails fast with a clear message if a required
- * value is missing or malformed.
+ * `dotenv/config` (imported first) loads server/.env in dev. In production the
+ * host's secret store populates the environment instead — .env is git-ignored.
+ * Secrets live ONLY in the environment, never in the repo or in client code.
+ * Importing this module validates the env up front and fails fast with a clear
+ * message if a required value is missing or malformed.
  */
 
 const EnvSchema = z.object({
