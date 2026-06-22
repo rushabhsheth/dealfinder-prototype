@@ -101,11 +101,54 @@ There are two demo paths through the prototype:
 ## 15. Settings & Privacy Controls
 - **Purpose:** trust controls.
 - **Elements:** disconnect inbox, pause scanning, delete my data, notification prefs,
-  subscription status. Plain language.
-- **Next:** —
+  subscription status. Plain language. "Manage subscriptions" deep-links to Enrolled Brands.
+- **Next:** Enrolled Brands.
+
+## 16. Enrolled Brands  (real-webapp phase — see `ENROLLED_BRANDS_PRD.md`)
+- **Purpose:** the trust ledger — one place showing every brand sending the user promos
+  through DealFinder, with one-tap pause / real unsubscribe. Premium-gated.
+- **Entry:** hamburger menu (`HeaderMenu.tsx`), item "Enrolled Brands", above Settings.
+- **Route:** `/brands`.
+- **Elements:** summary strip (N brands · M deals · $X saved); sortable/filterable list of
+  brand rows, each with avatar, brand name, **source badge** (Enrolled = we subscribed you /
+  Detected = already in your inbox), **status badge** (Active / Paused / Unsubscribed),
+  category, deals-surfaced count, $ saved from this brand, last-offer date; a brand detail
+  sheet (why/when enrolled, recent offers, controls); persistent trust line ("we never rank
+  by payout"). Loading/empty/locked/error states required.
+- **Controls:** Pause (stop surfacing, reversible) · Unsubscribe (**real** RFC 8058
+  List-Unsubscribe) · Re-enroll. No dark patterns.
+- **Next:** Deal Detail (tap a brand's offer); back to feed.
+
+---
+
+## Sub-PRDs — detailed specs per surface
+
+Each surface below has a dedicated sub-PRD (this file is the one-line index; the sub-PRD is
+the build spec). All cover both the **prototype** and a forward-looking **real webapp** layer,
+matching the depth of `ENROLLED_BRANDS_PRD.md`. Note: the built app diverges from the original
+screen list — the Feed is **unified** (For You / All Deals in one tab), onboarding is a single
+**conversational "Meet Scout"** flow, Privacy is split from Settings, and there's a standalone
+**Scout assistant** not in the original list. The sub-PRDs spec the real code.
+
+| Sub-PRD | Covers (screens) | Routes |
+|---|---|---|
+| `FREE_PATH_PRD.md` | Value Explainer (1), free All-Deals view (2), downgrade banner (14) | `/`, `/feed` |
+| `ONBOARDING_PRD.md` | Meet Scout onboarding (3), Connect Email (5), Enrollment Consent (6), First Scan (7) | `/trial`, `/connect`, `/enroll`, `/scan` |
+| `CORE_FEED_PRD.md` | Personalized Ranked Feed (9), Deal Detail + Redeem (10) | `/feed`, `/deal/:id` |
+| `SAVINGS_PRD.md` | Savings Summary (8), Savings Dashboard (12) | `/summary`, `/savings` |
+| `MONETIZATION_PRD.md` | Paywall (13), Subscribed, Downgrade (14), entitlement/tier lifecycle | `/paywall`, `/subscribed` |
+| `TRAVEL_WATCH_PRD.md` | Travel Watch (11) | `/watches` |
+| `SETTINGS_PRIVACY_PRD.md` | Settings & Privacy controls (15) | `/settings`, `/privacy` |
+| `ASSISTANT_PRD.md` | Scout conversational agent (not in original list) | `/chat` |
+| `USER_PREFERENCES_PRD.md` | Personalization inputs storage & editing (4 + Settings) | — |
+| `ENROLLED_BRANDS_PRD.md` | Enrolled Brands trust ledger (16) | `/brands` |
 
 ---
 
 ### Build priority (see BUILD_PLAN.md)
 Hero screens first: **9, 10, 8, 13.** They carry the demo. The onboarding chain
 (3–7) and free-tier screens (1, 2, 14) follow. Settings/dashboard (11, 12, 15) last.
+
+Screen **16 (Enrolled Brands)** belongs to the real-webapp migration, not the mock
+prototype — sequence it via `WEBAPP_MIGRATION_BUILD_PLAN.md` (Phase 4), after real OAuth,
+scanning, and auto-enrollment exist.

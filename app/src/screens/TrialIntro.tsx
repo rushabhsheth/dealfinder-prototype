@@ -5,6 +5,7 @@ import { savings } from "../lib/data";
 import { useDemo } from "../state/DemoContext";
 import type { TravelStyle } from "../types";
 import { CATEGORY_OPTIONS, BRAND_OPTIONS, TRAVEL_STYLE_OPTIONS } from "../lib/preferences";
+import { backendEnabled } from "../lib/api";
 import TopBar from "../components/TopBar";
 import PrimaryButton from "../components/PrimaryButton";
 import ChipGroup from "../components/ChipGroup";
@@ -228,7 +229,16 @@ export default function TrialIntro() {
         )}
 
         {step === "connect" &&
-          (connecting ? (
+          (backendEnabled ? (
+            // Live mode — hand off to the real connect screen, which signs the
+            // user in (if needed) and runs the real read-only Gmail OAuth.
+            <Answer disabled={typing}>
+              <PrimaryButton onClick={() => navigate("/connect")}>Connect inbox</PrimaryButton>
+              <p className="text-center text-caption text-ink-muted">
+                Read-only · disconnect &amp; delete anytime
+              </p>
+            </Answer>
+          ) : connecting ? (
             <div className="flex h-12 items-center justify-center gap-2 rounded-button bg-primary/10 text-label font-semibold text-primary">
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
               Connecting to {connecting}…
