@@ -1,4 +1,5 @@
 import type { FastifyInstance } from "fastify";
+import { waitUntil } from "@vercel/functions";
 import { requireUser, requirePremium } from "../auth/middleware.js";
 import { startScan, getScanStatus } from "../services/scan.js";
 import { NEUTRAL_PREFERENCES, type RankPreferences } from "../services/ranking.js";
@@ -30,8 +31,16 @@ export async function scanRoutes(app: FastifyInstance): Promise<void> {
     };
 
     try {
-      const result = await startScan(req.user!.id, prefs);
-      return reply.send(result);
+      const { scanId, done } = await startScan(req.user!.id, prefs);
+      // Keep the worker alive past the response. On Vercel `waitUntil` extends
+      // the function's lifetime until the scan finishes (up to maxDuration);
+      // locally it's a no-op and the long-lived server runs `done` anyway.
+      try {
+        waitUntil(done);
+      } catch {
+        void done;
+      }
+      return reply.send({ scanId });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "scan failed to start";
       const code = /no active inbox/i.test(msg) ? 409 : 503;

@@ -33,10 +33,15 @@ export default function FirstScan() {
   const [progress, setProgress] = useState(0);
   const [step, setStep] = useState(0);
   const [scanned, setScanned] = useState(0);
+  const [offersFound, setOffersFound] = useState(0);
   const [status, setStatus] = useState<Status>("scanning");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  // Real scan result handed to the summary screen.
+  // Latest scan snapshot, handed to the summary screen (kept fresh every poll so
+  // the user can jump ahead before the scan fully finishes).
   const scanResult = useRef<{ foundTotal: number; offersFound: number; messagesScanned: number } | null>(null);
+
+  const seeDealsNow = () =>
+    navigate("/summary", { state: { scan: scanResult.current } });
 
   // ── Drive the scan (real or mocked) ────────────────────────────────────────
   useEffect(() => {
@@ -63,12 +68,14 @@ export default function FirstScan() {
           if (cancelled) return;
           const { scan } = await getScan(scanId);
           setScanned(scan.messagesScanned);
+          setOffersFound(scan.offersFound);
+          // Keep the latest snapshot fresh so "see deals now" can jump ahead.
+          scanResult.current = {
+            foundTotal: scan.foundTotal,
+            offersFound: scan.offersFound,
+            messagesScanned: scan.messagesScanned,
+          };
           if (scan.status === "done") {
-            scanResult.current = {
-              foundTotal: scan.foundTotal,
-              offersFound: scan.offersFound,
-              messagesScanned: scan.messagesScanned,
-            };
             setStatus("done");
           } else if (scan.status === "error") {
             setErrorMsg(scan.error ?? "The scan couldn't finish.");
@@ -206,6 +213,17 @@ export default function FirstScan() {
           );
         })}
       </div>
+
+      {/* Progressive escape hatch: the scan keeps running, but the moment we've
+          found deals the user can jump straight to them — never stuck waiting. */}
+      {status === "scanning" && offersFound > 0 && (
+        <button
+          onClick={seeDealsNow}
+          className="mt-7 text-label font-semibold text-primary active:opacity-70"
+        >
+          See your {offersFound} {offersFound === 1 ? "deal" : "deals"} now →
+        </button>
+      )}
     </div>
   );
 }

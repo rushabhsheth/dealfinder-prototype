@@ -276,6 +276,13 @@ async function runScan(
 
 export interface StartScanResult {
   scanId: string;
+  /**
+   * The worker promise. On Vercel the route hands this to `waitUntil` so the
+   * serverless function isn't frozen mid-scan after the response is sent; the
+   * caller otherwise lets it run fire-and-forget (a long-lived local server
+   * keeps it alive on its own).
+   */
+  done: Promise<void>;
 }
 
 /**
@@ -300,10 +307,11 @@ export async function startScan(
   if (error) throw new Error(error.message);
   const scanId = (data as { id: string }).id;
 
-  // Fire-and-forget; progress + completion are written to the scan row.
-  void runScan(scanId, userId, prefs);
+  // Progress + completion are written to the scan row; the route keeps the
+  // worker alive (waitUntil on Vercel, fire-and-forget locally).
+  const done = runScan(scanId, userId, prefs);
 
-  return { scanId };
+  return { scanId, done };
 }
 
 export interface ScanStatus {
