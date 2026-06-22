@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import type { Tool, Message, ToolUseBlock } from "@anthropic-ai/sdk/resources/messages";
 import { z } from "zod";
 import { config } from "../config.js";
 import type { ParsedMessage } from "./provider.js";
@@ -41,7 +42,7 @@ export type ExtractedOffer = z.infer<typeof ExtractedOfferSchema>;
 const ResultSchema = z.object({ offers: z.array(ExtractedOfferSchema).max(8) });
 
 /** JSON Schema mirror of the zod shape, for the Anthropic tool definition. */
-const OFFER_TOOL: Anthropic.Tool = {
+const OFFER_TOOL: Tool = {
   name: "record_offers",
   description:
     "Record the concrete, redeemable promotional offers found in this email. " +
@@ -114,8 +115,14 @@ function buildUserPrompt(msg: ParsedMessage): string {
   ].join("\n");
 }
 
-let cachedClient: Anthropic | null = null;
-function defaultClient(): Anthropic {
+// Derive the client instance type from the constructor value rather than using
+// the default import as a type — the SDK's `export { Anthropic as default }`
+// namespace merge doesn't survive every TS/module-resolution combo (see the
+// resolution-robust named-type imports above).
+type AnthropicClient = InstanceType<typeof Anthropic>;
+
+let cachedClient: AnthropicClient | null = null;
+function defaultClient(): AnthropicClient {
   if (!config.anthropicApiKey) {
     throw new Error("ANTHROPIC_API_KEY is not configured");
   }
@@ -125,10 +132,10 @@ function defaultClient(): Anthropic {
 
 /** Pull the `record_offers` tool input out of a messages response & validate it. */
 export function parseOffersFromResponse(
-  msg: Anthropic.Message,
+  msg: Message,
 ): ExtractedOffer[] {
   const toolUse = msg.content.find(
-    (b): b is Anthropic.ToolUseBlock =>
+    (b): b is ToolUseBlock =>
       b.type === "tool_use" && b.name === "record_offers",
   );
   if (!toolUse) return [];
@@ -138,7 +145,7 @@ export function parseOffersFromResponse(
 }
 
 export interface ExtractDeps {
-  client?: Anthropic;
+  client?: AnthropicClient;
   model?: string;
 }
 
