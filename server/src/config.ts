@@ -15,6 +15,8 @@ const EnvSchema = z.object({
     .default("development"),
   PORT: z.coerce.number().int().positive().default(8787),
   CORS_ORIGIN: z.string().default("http://localhost:5173"),
+  // Where the frontend lives — OAuth callbacks redirect the browser back here.
+  APP_BASE_URL: z.string().url().default("http://localhost:5173"),
 
   // Supabase
   SUPABASE_URL: z.string().url(),
@@ -44,6 +46,7 @@ export type AppConfig = Readonly<{
   isProd: boolean;
   port: number;
   corsOrigins: string[];
+  appBaseUrl: string;
   supabase: { url: string; anonKey: string; serviceRoleKey: string };
   tokenEncryptionKey: Buffer;
   google: {
@@ -71,6 +74,7 @@ function load(): AppConfig {
     corsOrigins: env.CORS_ORIGIN.split(",")
       .map((s) => s.trim())
       .filter(Boolean),
+    appBaseUrl: env.APP_BASE_URL,
     supabase: {
       url: env.SUPABASE_URL,
       anonKey: env.SUPABASE_ANON_KEY,
@@ -87,3 +91,12 @@ function load(): AppConfig {
 }
 
 export const config: AppConfig = load();
+
+/** True once Google OAuth credentials are present (required for Phase 1 connect). */
+export function googleConfigured(): boolean {
+  return Boolean(
+    config.google.clientId &&
+      config.google.clientSecret &&
+      config.google.redirectUri,
+  );
+}

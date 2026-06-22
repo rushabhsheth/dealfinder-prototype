@@ -4,6 +4,7 @@ import sensible from "@fastify/sensible";
 import { config } from "./config.js";
 import { healthRoutes } from "./routes/health.js";
 import { authRoutes } from "./auth/routes.js";
+import { connectionRoutes } from "./routes/connections.js";
 
 /**
  * Build (but don't start) the Fastify app. Kept separate from index.ts so tests
@@ -27,7 +28,8 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   await app.register(healthRoutes);
   await app.register(authRoutes);
-  // Phase 1+ route groups (Gmail connect, brands, offers, savings) register here.
+  await app.register(connectionRoutes);
+  // Phase 2+ route groups (brands, offers, savings) register here.
 
   return app;
 }

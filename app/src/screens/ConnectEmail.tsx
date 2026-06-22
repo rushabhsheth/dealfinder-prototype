@@ -2,13 +2,21 @@ import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Check, X, Lock, Trash2, Eye } from "lucide-react";
 import { useDemo } from "../state/DemoContext";
+import { useToast } from "../components/Toast";
+import { backendEnabled, isSignedIn, startGoogleConnect } from "../lib/api";
 import TopBar from "../components/TopBar";
 import PrimaryButton from "../components/PrimaryButton";
 
 /**
- * Screen 5 — Connect Email (PermissionSheet, mocked). The trust-critical
- * moment: plain-language, read-only framing, explicit "what we can / can't
- * see". No real OAuth (CLAUDE.md hard rule 1) — the buttons advance the flow.
+ * Screen 5 — Connect Email. The trust-critical moment: plain-language,
+ * read-only framing, explicit "what we can / can't see".
+ *
+ * Two modes (see lib/api.ts):
+ *  - Backend configured → real Google OAuth: we ask the server for the consent
+ *    URL (gmail.readonly only) and redirect the browser to Google. Google
+ *    returns to /connect/callback.
+ *  - Pure-demo (no VITE_API_BASE) → the original mocked handshake that just
+ *    advances the flow, so the prototype-style demo still works.
  */
 const CAN_SEE = [
   "Promotional & deal emails",
@@ -25,9 +33,10 @@ export default function ConnectEmail() {
   const navigate = useNavigate();
   const connectFlow = (useLocation().state as { connectFlow?: boolean } | null)?.connectFlow;
   const { setInboxConnected } = useDemo();
+  const toast = useToast();
   const [connecting, setConnecting] = useState<null | "Gmail" | "Outlook">(null);
 
-  function connect(provider: "Gmail" | "Outlook") {
+  function connectMock(provider: "Gmail" | "Outlook") {
     setConnecting(provider);
     // Mocked OAuth handshake — just a short delay, then continue. Carry the
     // connectFlow flag so enrollment returns to Privacy when reconnecting later.
@@ -35,6 +44,24 @@ export default function ConnectEmail() {
       setInboxConnected(true);
       navigate("/enroll", { state: { connectFlow } });
     }, 1300);
+  }
+
+  async function connectGmail() {
+    if (!backendEnabled) return connectMock("Gmail");
+    // Real OAuth requires a signed-in user; the connect flag survives the detour.
+    if (!isSignedIn()) {
+      navigate("/signin", { state: { next: "/connect", connectFlow } });
+      return;
+    }
+    setConnecting("Gmail");
+    try {
+      const { authorizeUrl } = await startGoogleConnect();
+      // Leave the SPA for Google's consent screen.
+      window.location.href = authorizeUrl;
+    } catch {
+      setConnecting(null);
+      toast.show("Couldn't start Google sign-in. Try again.");
+    }
   }
 
   return (
@@ -72,13 +99,22 @@ export default function ConnectEmail() {
           </div>
         ) : (
           <div className="space-y-2">
-            <PrimaryButton onClick={() => connect("Gmail")}>Connect Gmail</PrimaryButton>
-            <button
-              onClick={() => connect("Outlook")}
-              className="flex h-12 w-full items-center justify-center rounded-button border border-hairline bg-card text-label font-semibold text-ink active:bg-surface"
-            >
-              Connect Outlook
-            </button>
+            <PrimaryButton onClick={connectGmail}>Connect Gmail</PrimaryButton>
+            {backendEnabled ? (
+              <button
+                disabled
+                className="flex h-12 w-full items-center justify-center rounded-button border border-hairline bg-card text-label font-semibold text-ink-muted opacity-60"
+              >
+                Outlook — coming soon
+              </button>
+            ) : (
+              <button
+                onClick={() => connectMock("Outlook")}
+                className="flex h-12 w-full items-center justify-center rounded-button border border-hairline bg-card text-label font-semibold text-ink active:bg-surface"
+              >
+                Connect Outlook
+              </button>
+            )}
           </div>
         )}
         <p className="mt-2 flex items-center justify-center gap-1.5 text-caption text-ink-muted">

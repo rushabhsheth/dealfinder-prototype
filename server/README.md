@@ -24,11 +24,17 @@ server/
       middleware.ts     requireUser — verifies Supabase bearer JWT
       routes.ts         /auth/signup, /auth/signin, /auth/me
     routes/health.ts    /health, /ready
+    routes/connections.ts  Gmail connect: start / callback / list / disconnect
+    services/
+      google.ts         OAuth handshake (gmail.readonly only) + scope guard
+      oauthState.ts     encrypted CSRF/user-bound OAuth state
+      connections.ts    connect (encrypt+store), list, disconnect+purge
     types/domain.ts     API types aligned with app/src/types.ts
   docs/
     SCHEMA.md           tables, relationships, RLS, provisioning
     OAUTH_TOKEN_STORAGE.md   how tokens are encrypted + where the key lives
     AUTH_FLOW.md        sign-up / sign-in / me flow
+    GMAIL_CONNECT.md    Phase 1 read-only Gmail connect + disconnect/purge
 ```
 
 ## Setup
@@ -71,5 +77,11 @@ curl -X POST localhost:8787/auth/signup -H 'content-type: application/json' \
 
 ## Status
 
-Phase 0 complete: schema + migrations, encrypted-token design, minimal auth,
-typed config, health checks. **Gmail OAuth is not wired yet** — that's Phase 1.
+- **Phase 0** ✓ — schema + migrations, encrypted-token design, minimal auth,
+  typed config, health checks.
+- **Phase 1** ✓ — real read-only Gmail connect (`gmail.readonly` only),
+  encrypted server-side tokens, and disconnect-and-purge. See
+  `docs/GMAIL_CONNECT.md`. Set `GOOGLE_*` env + `VITE_API_BASE` to run it live;
+  without them the app stays in demo mode.
+
+Next (Phase 2): background scan + LLM extraction → real offers/brands.
