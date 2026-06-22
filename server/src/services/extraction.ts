@@ -1,5 +1,10 @@
-import Anthropic from "@anthropic-ai/sdk";
-import type { Tool, Message, ToolUseBlock } from "@anthropic-ai/sdk/resources/messages";
+// Named import (NOT default): the SDK's `export { Anthropic as default }`
+// re-export resolves to the bare module namespace under some module-resolution
+// setups (e.g. Vercel's Linux build), which is neither constructable nor usable
+// as a type. The named `Anthropic` is the real class+namespace merge and
+// resolves correctly across CJS/ESM, so `new Anthropic()`, `: Anthropic`, and
+// `Anthropic.Tool` / `.Message` / `.ToolUseBlock` all work.
+import { Anthropic } from "@anthropic-ai/sdk";
 import { z } from "zod";
 import { config } from "../config.js";
 import type { ParsedMessage } from "./provider.js";
@@ -42,7 +47,7 @@ export type ExtractedOffer = z.infer<typeof ExtractedOfferSchema>;
 const ResultSchema = z.object({ offers: z.array(ExtractedOfferSchema).max(8) });
 
 /** JSON Schema mirror of the zod shape, for the Anthropic tool definition. */
-const OFFER_TOOL: Tool = {
+const OFFER_TOOL: Anthropic.Tool = {
   name: "record_offers",
   description:
     "Record the concrete, redeemable promotional offers found in this email. " +
@@ -115,14 +120,8 @@ function buildUserPrompt(msg: ParsedMessage): string {
   ].join("\n");
 }
 
-// Derive the client instance type from the constructor value rather than using
-// the default import as a type — the SDK's `export { Anthropic as default }`
-// namespace merge doesn't survive every TS/module-resolution combo (see the
-// resolution-robust named-type imports above).
-type AnthropicClient = InstanceType<typeof Anthropic>;
-
-let cachedClient: AnthropicClient | null = null;
-function defaultClient(): AnthropicClient {
+let cachedClient: Anthropic | null = null;
+function defaultClient(): Anthropic {
   if (!config.anthropicApiKey) {
     throw new Error("ANTHROPIC_API_KEY is not configured");
   }
@@ -132,10 +131,10 @@ function defaultClient(): AnthropicClient {
 
 /** Pull the `record_offers` tool input out of a messages response & validate it. */
 export function parseOffersFromResponse(
-  msg: Message,
+  msg: Anthropic.Message,
 ): ExtractedOffer[] {
   const toolUse = msg.content.find(
-    (b): b is ToolUseBlock =>
+    (b): b is Anthropic.ToolUseBlock =>
       b.type === "tool_use" && b.name === "record_offers",
   );
   if (!toolUse) return [];
@@ -145,7 +144,7 @@ export function parseOffersFromResponse(
 }
 
 export interface ExtractDeps {
-  client?: AnthropicClient;
+  client?: Anthropic;
   model?: string;
 }
 
