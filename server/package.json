@@ -11,7 +11,7 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit -p tsconfig.check.json",
     "gen:key": "node --input-type=module -e \"import('node:crypto').then(c=>console.log(c.randomBytes(32).toString('base64')))\""
   },
   "dependencies": {
