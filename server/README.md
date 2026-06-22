@@ -17,8 +17,6 @@ server/
     config.ts           typed, validated env (zod) — fails fast
     db/
       supabase.ts       adminDb (service-role) + authClient (anon)
-      migrations/0001_init.sql   full schema (users, entitlements,
-                                 oauth_connections, brands, offers, savings)
     crypto/tokens.ts    AES-256-GCM encrypt/decrypt for OAuth tokens
     auth/
       middleware.ts     requireUser — verifies Supabase bearer JWT
@@ -47,8 +45,9 @@ npm run gen:key               # → paste into TOKEN_ENCRYPTION_KEY
 ```
 
 Fill `.env` with your Supabase project URL + anon + service-role keys. Apply the
-schema: paste `src/db/migrations/0001_init.sql` into the Supabase SQL editor (or
-`supabase db push`).
+schema from the CLI-managed migrations at the repo root — `supabase link
+--project-ref <ref>` then `supabase db push` (see `../supabase/README.md`), or
+paste `../supabase/migrations/20260622170000_init.sql` into the SQL editor.
 
 ## Run
 

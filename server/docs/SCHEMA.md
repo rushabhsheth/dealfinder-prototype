@@ -1,6 +1,7 @@
 # Database schema (Phase 0)
 
-Managed Postgres on Supabase. Source of truth: `server/src/db/migrations/0001_init.sql`.
+Managed Postgres on Supabase. Source of truth: `supabase/migrations/20260622170000_init.sql`
+(idempotent — safe to re-run). CLI usage: `supabase/README.md`.
 Enums mirror `app/src/types.ts` so the API and frontend share one vocabulary.
 
 ## Tables
@@ -59,8 +60,12 @@ API doing extra writes.
 
 ## Applying
 
-Paste `0001_init.sql` into the Supabase SQL editor, or with the Supabase CLI:
+With the Supabase CLI (preferred — see `supabase/README.md`):
 
 ```bash
-supabase db push   # or: psql "$DATABASE_URL" -f src/db/migrations/0001_init.sql
+supabase link --project-ref <ref>
+supabase db push
 ```
+
+Or paste `supabase/migrations/20260622170000_init.sql` into the Supabase SQL
+editor. The migration is idempotent, so re-running after a partial apply is safe.

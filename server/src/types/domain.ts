@@ -7,7 +7,7 @@
  *
  * Keep this in sync with:
  *   - app/src/types.ts (frontend types)
- *   - server/src/db/migrations/0001_init.sql (the *_t enums)
+ *   - supabase/migrations/20260622170000_init.sql (the *_t enums)
  */
 
 export type DealTier = "public" | "personalized";

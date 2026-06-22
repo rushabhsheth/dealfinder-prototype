@@ -1,6 +1,10 @@
 -- DealFinder — initial schema (Phase 0)
--- Managed Postgres on Supabase. Apply via the Supabase SQL editor or CLI:
---   supabase db push   (or paste into the SQL editor)
+-- Managed Postgres on Supabase. Apply with the Supabase CLI:
+--   supabase db push      (or paste into the SQL editor)
+--
+-- This migration is IDEMPOTENT — safe to re-run. Tables use `if not exists`,
+-- enums are guarded, and every trigger/policy is dropped-if-exists before being
+-- (re)created, so a partial earlier run can be finished by simply running again.
 --
 -- Design notes:
 --  * Enums mirror app/src/types.ts so the API and the frontend speak one vocabulary.
@@ -67,6 +71,7 @@ create table if not exists public.users (
   updated_at  timestamptz not null default now()
 );
 
+drop trigger if exists users_set_updated_at on public.users;
 create trigger users_set_updated_at
   before update on public.users
   for each row execute function set_updated_at();
@@ -88,6 +93,7 @@ create table if not exists public.entitlements (
   updated_at       timestamptz not null default now()
 );
 
+drop trigger if exists entitlements_set_updated_at on public.entitlements;
 create trigger entitlements_set_updated_at
   before update on public.entitlements
   for each row execute function set_updated_at();
@@ -119,6 +125,7 @@ create table if not exists public.oauth_connections (
 create index if not exists oauth_connections_user_idx
   on public.oauth_connections(user_id);
 
+drop trigger if exists oauth_connections_set_updated_at on public.oauth_connections;
 create trigger oauth_connections_set_updated_at
   before update on public.oauth_connections
   for each row execute function set_updated_at();
@@ -151,6 +158,7 @@ create table if not exists public.brands (
 
 create index if not exists brands_user_idx on public.brands(user_id);
 
+drop trigger if exists brands_set_updated_at on public.brands;
 create trigger brands_set_updated_at
   before update on public.brands
   for each row execute function set_updated_at();
@@ -190,6 +198,7 @@ create index if not exists offers_user_idx on public.offers(user_id);
 create index if not exists offers_brand_idx on public.offers(brand_id);
 create index if not exists offers_user_expires_idx on public.offers(user_id, expires_at);
 
+drop trigger if exists offers_set_updated_at on public.offers;
 create trigger offers_set_updated_at
   before update on public.offers
   for each row execute function set_updated_at();
@@ -221,20 +230,26 @@ alter table public.offers            enable row level security;
 alter table public.savings           enable row level security;
 
 -- users: a user can see/update only their own profile row.
+drop policy if exists users_select_own on public.users;
 create policy users_select_own on public.users
   for select using (id = auth.uid());
+drop policy if exists users_update_own on public.users;
 create policy users_update_own on public.users
   for update using (id = auth.uid());
 
 -- Generic per-user read policies on the rest. Writes are intentionally NOT
 -- granted to the anon role — only the backend (service role) mutates these,
 -- so token storage, enrollment, and scans can't be forged from the client.
+drop policy if exists entitlements_select_own on public.entitlements;
 create policy entitlements_select_own on public.entitlements
   for select using (user_id = auth.uid());
+drop policy if exists brands_select_own on public.brands;
 create policy brands_select_own on public.brands
   for select using (user_id = auth.uid());
+drop policy if exists offers_select_own on public.offers;
 create policy offers_select_own on public.offers
   for select using (user_id = auth.uid());
+drop policy if exists savings_select_own on public.savings;
 create policy savings_select_own on public.savings
   for select using (user_id = auth.uid());
 
