@@ -49,7 +49,7 @@ export default function ConnectEmail() {
   async function connectGmail() {
     if (!backendEnabled) return connectMock("Gmail");
     // Real OAuth requires a signed-in user; the connect flag survives the detour.
-    if (!isSignedIn()) {
+    if (!(await isSignedIn())) {
       navigate("/signin", { state: { next: "/connect", connectFlow } });
       return;
     }

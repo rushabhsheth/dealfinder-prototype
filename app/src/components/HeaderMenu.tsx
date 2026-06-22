@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useDemo } from "../state/DemoContext";
 import { useToast } from "./Toast";
+import { signOut as apiSignOut } from "../lib/api";
 
 /**
  * HeaderMenu — the top-left hamburger on the main tab screens. Opens a
@@ -30,10 +31,11 @@ export default function HeaderMenu() {
   const planLabel =
     tier === "paid" ? "Premium · annual" : tier === "trial" ? "Free trial" : "Free";
 
-  // No real auth in the prototype — "sign out" clears demo state and returns to
-  // the front-door screen.
+  // Clears the real Supabase session (no-op in demo mode) plus demo state, then
+  // returns to the front-door screen.
   const signOut = () => {
     setOpen(false);
+    void apiSignOut();
     reset();
     navigate("/");
     toast.show("Signed out");

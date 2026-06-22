@@ -9,6 +9,7 @@ import TrialIntro from "./screens/TrialIntro";
 import ConnectEmail from "./screens/ConnectEmail";
 import ConnectCallback from "./screens/ConnectCallback";
 import SignIn from "./screens/SignIn";
+import AuthCallback from "./screens/AuthCallback";
 import EnrollmentConsent from "./screens/EnrollmentConsent";
 import FirstScan from "./screens/FirstScan";
 import SavingsSummary from "./screens/SavingsSummary";
@@ -36,6 +37,7 @@ export default function App() {
           <Route path="/connect" element={<ConnectEmail />} />
           <Route path="/connect/callback" element={<ConnectCallback />} />
           <Route path="/signin" element={<SignIn />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/enroll" element={<EnrollmentConsent />} />
           <Route path="/scan" element={<FirstScan />} />
           <Route path="/summary" element={<SavingsSummary />} />
