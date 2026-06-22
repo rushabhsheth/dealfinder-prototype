@@ -1,0 +1,89 @@
+import { z } from "zod";
+
+/**
+ * Typed, validated configuration loaded from environment variables.
+ *
+ * Secrets live ONLY in the environment (server/.env in dev, the host secret
+ * store in prod) — never in the repo or in client code. Importing this module
+ * validates the env up front and fails fast with a clear message if a required
+ * value is missing or malformed.
+ */
+
+const EnvSchema = z.object({
+  NODE_ENV: z
+    .enum(["development", "test", "production"])
+    .default("development"),
+  PORT: z.coerce.number().int().positive().default(8787),
+  CORS_ORIGIN: z.string().default("http://localhost:5173"),
+
+  // Supabase
+  SUPABASE_URL: z.string().url(),
+  SUPABASE_ANON_KEY: z.string().min(1),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
+
+  // AES-256-GCM key for OAuth-token encryption: 32 bytes, base64-encoded.
+  TOKEN_ENCRYPTION_KEY: z
+    .string()
+    .min(1, "TOKEN_ENCRYPTION_KEY is required")
+    .refine(
+      (v) => Buffer.from(v, "base64").length === 32,
+      "TOKEN_ENCRYPTION_KEY must be 32 bytes, base64-encoded (run: npm run gen:key)",
+    ),
+
+  // Google OAuth — Phase 1. Optional now so the server boots before we wire Gmail.
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
+  GOOGLE_OAUTH_REDIRECT_URI: z.string().url().optional(),
+
+  // Anthropic — Phase 2 extraction. Optional now.
+  ANTHROPIC_API_KEY: z.string().optional(),
+});
+
+export type AppConfig = Readonly<{
+  nodeEnv: "development" | "test" | "production";
+  isProd: boolean;
+  port: number;
+  corsOrigins: string[];
+  supabase: { url: string; anonKey: string; serviceRoleKey: string };
+  tokenEncryptionKey: Buffer;
+  google: {
+    clientId?: string;
+    clientSecret?: string;
+    redirectUri?: string;
+  };
+  anthropicApiKey?: string;
+}>;
+
+function load(): AppConfig {
+  const parsed = EnvSchema.safeParse(process.env);
+  if (!parsed.success) {
+    const issues = parsed.error.issues
+      .map((i) => `  - ${i.path.join(".") || "(root)"}: ${i.message}`)
+      .join("\n");
+    // Fail fast — do not boot with an invalid/partial config.
+    throw new Error(`Invalid server environment:\n${issues}`);
+  }
+  const env = parsed.data;
+  return Object.freeze({
+    nodeEnv: env.NODE_ENV,
+    isProd: env.NODE_ENV === "production",
+    port: env.PORT,
+    corsOrigins: env.CORS_ORIGIN.split(",")
+      .map((s) => s.trim())
+      .filter(Boolean),
+    supabase: {
+      url: env.SUPABASE_URL,
+      anonKey: env.SUPABASE_ANON_KEY,
+      serviceRoleKey: env.SUPABASE_SERVICE_ROLE_KEY,
+    },
+    tokenEncryptionKey: Buffer.from(env.TOKEN_ENCRYPTION_KEY, "base64"),
+    google: {
+      clientId: env.GOOGLE_CLIENT_ID,
+      clientSecret: env.GOOGLE_CLIENT_SECRET,
+      redirectUri: env.GOOGLE_OAUTH_REDIRECT_URI,
+    },
+    anthropicApiKey: env.ANTHROPIC_API_KEY,
+  });
+}
+
+export const config: AppConfig = load();

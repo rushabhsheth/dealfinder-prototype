@@ -11,3 +11,11 @@ PRDs/
 
 # Machine-local Claude Code settings
 .claude/settings.local.json
+
+# Server secrets — never commit env files (only *.example is tracked)
+.env
+.env.*
+!.env.example
+server/.env
+server/.env.*
+!server/.env.example
