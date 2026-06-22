@@ -1,17 +1,21 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Copy, Check, ExternalLink, Sparkles, ShieldCheck } from "lucide-react";
-import { getDeal } from "../lib/data";
+import { loadDeal } from "../lib/data";
+import { backendEnabled, redeemOffer } from "../lib/api";
+import { useAsync } from "../lib/useAsync";
 import { expiryLabel, isUrgent, usd } from "../lib/format";
 import { gradeForDeal } from "../lib/grade";
 import { useDemo } from "../state/DemoContext";
 import { useToast } from "../components/Toast";
+import type { Deal } from "../types";
 import TopBar from "../components/TopBar";
 import BrandMark from "../components/BrandMark";
 import SavingsBadge from "../components/SavingsBadge";
 import UrgencyBadge from "../components/UrgencyBadge";
 import DealGrade from "../components/DealGrade";
 import PrimaryButton from "../components/PrimaryButton";
+import ScreenState from "../components/ScreenState";
 
 /**
  * Screen 10 — Deal Detail + Redeem ⭐ (hero).
@@ -21,10 +25,33 @@ import PrimaryButton from "../components/PrimaryButton";
 export default function DealDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const deal = getDeal(id);
+  const fetcher = useCallback(() => loadDeal(id), [id]);
+  const { data: deal, loading, error, reload } = useAsync<Deal | undefined>(fetcher);
   const { redeem, hasRedeemed } = useDemo();
   const toast = useToast();
   const [copied, setCopied] = useState(false);
+
+  if (loading) {
+    return (
+      <div className="flex h-full flex-col">
+        <TopBar back title="Deal" />
+        <div className="flex flex-1 items-center justify-center">
+          <ScreenState variant="loading" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-full flex-col">
+        <TopBar back title="Deal" />
+        <div className="flex flex-1 items-center justify-center">
+          <ScreenState variant="error" message={error} onRetry={reload} />
+        </div>
+      </div>
+    );
+  }
 
   if (!deal) {
     return (
@@ -50,9 +77,17 @@ export default function DealDetail() {
   function onRedeem() {
     if (!deal) return;
     redeem(deal.id);
+    // In backend mode, write the redemption to the real savings ledger too.
+    if (backendEnabled) {
+      redeemOffer(deal.id).catch(() => {
+        /* local "redeemed" state still holds; ledger reconciles on next load */
+      });
+    }
     if (deal.redeemType === "code") {
       copyCode();
     } else {
+      // Real deep link when present; otherwise just acknowledge.
+      if (deal.dealUrl) window.open(deal.dealUrl, "_blank", "noopener");
       toast.show(deal.redeemType === "book" ? "Opening booking…" : "Opening deal…");
     }
   }

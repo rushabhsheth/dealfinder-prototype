@@ -4,6 +4,7 @@ import {
   exchangeCode,
   getAccount,
   assertReadOnlyScopes,
+  refreshAccessToken,
   revokeToken,
   type GoogleTokens,
 } from "./google.js";
@@ -138,4 +139,82 @@ export async function disconnectAndPurge(
   if (delErr) throw new Error(delErr.message);
 
   return true;
+}
+
+// ── Access for the scan worker ────────────────────────────────────────────────
+
+interface ConnectionWithTokens {
+  id: string;
+  access_token_ciphertext: string;
+  refresh_token_ciphertext: string | null;
+  access_token_expires_at: string | null;
+}
+
+/** The user's active Google connection (with token ciphertext), or null. */
+export async function getActiveGoogleConnection(
+  userId: string,
+): Promise<ConnectionWithTokens | null> {
+  const { data, error } = await adminDb
+    .from("oauth_connections")
+    .select(
+      "id, access_token_ciphertext, refresh_token_ciphertext, access_token_expires_at",
+    )
+    .eq("user_id", userId)
+    .eq("provider", "google")
+    .eq("status", "active")
+    .order("connected_at", { ascending: false })
+    .limit(1);
+  if (error) throw new Error(error.message);
+  return (data?.[0] as ConnectionWithTokens) ?? null;
+}
+
+// Refresh a little early so a token doesn't expire mid-scan.
+const TOKEN_REFRESH_SKEW_MS = 60_000;
+
+/**
+ * Return a usable access token for a connection, refreshing (and re-encrypting
+ * the new access token at rest) when the stored one is expired or about to be.
+ * Tokens never leave the server. Throws if the connection has no refresh token
+ * and the access token is stale (the user must reconnect).
+ */
+export async function getFreshAccessToken(
+  conn: ConnectionWithTokens,
+): Promise<string> {
+  const expiresAt = conn.access_token_expires_at
+    ? new Date(conn.access_token_expires_at).getTime()
+    : 0;
+  const stillFresh = expiresAt - TOKEN_REFRESH_SKEW_MS > Date.now();
+  if (stillFresh && conn.access_token_ciphertext) {
+    return decryptSecret(conn.access_token_ciphertext);
+  }
+
+  if (!conn.refresh_token_ciphertext) {
+    throw new Error("Access token expired and no refresh token on file");
+  }
+  const refreshToken = decryptSecret(conn.refresh_token_ciphertext);
+  const refreshed = await refreshAccessToken(refreshToken);
+  // Re-assert read-only — a refresh should never widen scope, but verify.
+  assertReadOnlyScopes(refreshed.scope);
+
+  const newExpiry = new Date(
+    Date.now() + refreshed.expiresInSeconds * 1000,
+  ).toISOString();
+  const { error } = await adminDb
+    .from("oauth_connections")
+    .update({
+      access_token_ciphertext: encryptSecret(refreshed.accessToken),
+      access_token_expires_at: newExpiry,
+    })
+    .eq("id", conn.id);
+  if (error) throw new Error(error.message);
+
+  return refreshed.accessToken;
+}
+
+/** Stamp a successful sync time on the connection (called after a scan). */
+export async function markSynced(connectionId: string): Promise<void> {
+  await adminDb
+    .from("oauth_connections")
+    .update({ last_synced_at: new Date().toISOString() })
+    .eq("id", connectionId);
 }

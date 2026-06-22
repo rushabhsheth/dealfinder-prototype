@@ -1,14 +1,17 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sparkles, ShieldCheck, Lock, ArrowRight, PauseCircle, Mail } from "lucide-react";
-import { personalizedDeals, publicDeals, CATEGORY_LABELS, savings } from "../lib/data";
+import { publicDeals, CATEGORY_LABELS, savings, loadPersonalizedDeals } from "../lib/data";
+import { useAsync } from "../lib/useAsync";
 import { usd } from "../lib/format";
 import { useDemo } from "../state/DemoContext";
+import type { Deal } from "../types";
 import DealCard from "../components/DealCard";
 import CategoryChips from "../components/CategoryChips";
 import BottomNav from "../components/BottomNav";
 import TopAppBar from "../components/TopAppBar";
 import UpsellNudge from "../components/UpsellNudge";
+import ScreenState from "../components/ScreenState";
 
 /**
  * Screens 2 + 9 + 14 — the unified Feed. One tab, two views via a segmented
@@ -28,7 +31,6 @@ export default function Feed() {
   const [view, setView] = useState<View>(isPremium ? "foryou" : "all");
   const [category, setCategory] = useState("All");
 
-  const totalSavings = personalizedDeals.reduce((sum, d) => sum + d.savingsAmount, 0);
   const categories = useMemo(
     () => ["All", ...Array.from(new Set(publicDeals.map((d) => CATEGORY_LABELS[d.category])))],
     []
@@ -54,7 +56,7 @@ export default function Feed() {
 
         {view === "foryou" ? (
           isPremium ? (
-            <ForYou tier={tier} totalSavings={totalSavings} navigate={navigate} />
+            <ForYou tier={tier} navigate={navigate} />
           ) : (
             <ForYouLocked onStartTrial={() => navigate("/trial")} />
           )
@@ -97,24 +99,32 @@ function Segment({
 }
 
 /* ---- For You (premium): personalized ranked deals ---- */
-function ForYou({
-  tier,
-  totalSavings,
-  navigate,
-}: {
-  tier: string;
-  totalSavings: number;
-  navigate: (to: string) => void;
-}) {
+function ForYou({ tier, navigate }: { tier: string; navigate: (to: string) => void }) {
+  const { data: deals, loading, error, reload } = useAsync<Deal[]>(loadPersonalizedDeals);
+
+  if (loading) return <ScreenState variant="loading" message="Loading your deals…" />;
+  if (error) return <ScreenState variant="error" message={error} onRetry={reload} />;
+  if (!deals || deals.length === 0) {
+    return (
+      <ScreenState
+        variant="empty"
+        title="No personalized deals yet"
+        message="Your scan didn't find personalized deals this time — we'll keep looking and surface them here."
+      />
+    );
+  }
+
+  const totalSavings = deals.reduce((sum, d) => sum + d.savingsAmount, 0);
+
   return (
     <>
       <p className="pb-2 text-caption text-ink-muted">
         <span className="nums font-semibold text-savings">{usd(totalSavings)}</span> in offers
-        ranked for you · {personalizedDeals.length} live · found in your inbox
+        ranked for you · {deals.length} live · found in your inbox
       </p>
 
       <div className="space-y-3">
-        {personalizedDeals.map((deal, i) => (
+        {deals.map((deal, i) => (
           <div key={deal.id} className="animate-fade-up" style={{ animationDelay: `${i * 40}ms` }}>
             <DealCard deal={deal} showWhy={i < 3} />
           </div>

@@ -9,6 +9,13 @@ import {
 } from "react";
 import type { BrandStatus, Tier, UserPreferences } from "../types";
 import { DEFAULT_PREFERENCES } from "../lib/preferences";
+import {
+  backendEnabled,
+  getEntitlement,
+  startTrial,
+  subscribePlan,
+  cancelPlan,
+} from "../lib/api";
 
 /**
  * Demo state for the prototype. No backend — just React state mirrored to
@@ -35,10 +42,12 @@ interface DemoState {
    *  Privacy via the Connect Inbox screen. */
   inboxConnected: boolean;
   setInboxConnected: (connected: boolean) => void;
-  /** Convert/restart premium: trial or paid, clears the downgrade flag. */
-  goPremium: (t: "trial" | "paid") => void;
-  /** Decline the paywall: drop to free and mark downgraded. */
-  downgrade: () => void;
+  /** Convert/restart premium: trial or paid, clears the downgrade flag. In
+   *  backend mode this also persists the entitlement server-side; await it when
+   *  ordering matters (e.g. start trial before a gated scan). */
+  goPremium: (t: "trial" | "paid") => Promise<void>;
+  /** Decline the paywall: drop to free and mark downgraded (+ server in backend mode). */
+  downgrade: () => Promise<void>;
   /** Connect-inbox nudge. Dismissal is in-memory only, so it returns on every
    *  fresh app open (per request) but stays hidden while navigating around. */
   nudgeDismissed: boolean;
@@ -103,14 +112,50 @@ export function DemoProvider({ children }: { children: ReactNode }) {
 
   const setTier = useCallback((t: Tier) => setTierState(t), []);
 
-  const goPremium = useCallback((t: "trial" | "paid") => {
-    setTierState(t);
-    setDowngraded(false);
+  // On startup in backend mode, the server's entitlement is the source of truth
+  // (lazy trial-expiry lives there). Reconcile the local tier with it; if the
+  // user isn't signed in yet, getEntitlement 401s and we keep the local value.
+  useEffect(() => {
+    if (!backendEnabled) return;
+    let active = true;
+    getEntitlement()
+      .then(({ entitlement }) => {
+        if (!active) return;
+        setTierState(entitlement.tier);
+        setDowngraded(entitlement.downgraded);
+      })
+      .catch(() => {
+        /* not signed in / offline — keep local demo state */
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
-  const downgrade = useCallback(() => {
-    setTierState("free");
+  const goPremium = useCallback(async (t: "trial" | "paid") => {
+    setTierState(t); // optimistic
+    setDowngraded(false);
+    if (!backendEnabled) return;
+    try {
+      const { entitlement } = t === "trial" ? await startTrial() : await subscribePlan();
+      setTierState(entitlement.tier);
+      setDowngraded(entitlement.downgraded);
+    } catch {
+      /* keep optimistic state; server reconciles on next load */
+    }
+  }, []);
+
+  const downgrade = useCallback(async () => {
+    setTierState("free"); // optimistic
     setDowngraded(true);
+    if (!backendEnabled) return;
+    try {
+      const { entitlement } = await cancelPlan();
+      setTierState(entitlement.tier);
+      setDowngraded(entitlement.downgraded);
+    } catch {
+      /* keep optimistic state */
+    }
   }, []);
 
   const dismissNudge = useCallback(() => setNudgeDismissed(true), []);

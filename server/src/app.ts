@@ -5,6 +5,11 @@ import { config } from "./config.js";
 import { healthRoutes } from "./routes/health.js";
 import { authRoutes } from "./auth/routes.js";
 import { connectionRoutes } from "./routes/connections.js";
+import { scanRoutes } from "./routes/scans.js";
+import { offerRoutes } from "./routes/offers.js";
+import { brandRoutes } from "./routes/brands.js";
+import { savingsRoutes } from "./routes/savings.js";
+import { entitlementRoutes } from "./routes/entitlements.js";
 
 /**
  * Build (but don't start) the Fastify app. Kept separate from index.ts so tests
@@ -29,7 +34,11 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(healthRoutes);
   await app.register(authRoutes);
   await app.register(connectionRoutes);
-  // Phase 2+ route groups (brands, offers, savings) register here.
+  await app.register(scanRoutes);
+  await app.register(offerRoutes);
+  await app.register(brandRoutes);
+  await app.register(savingsRoutes);
+  await app.register(entitlementRoutes);
 
   return app;
 }

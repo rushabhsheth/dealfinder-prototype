@@ -1,13 +1,20 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ScanSearch, Check } from "lucide-react";
+import { ScanSearch, Check, AlertCircle } from "lucide-react";
 import { savings } from "../lib/data";
+import { backendEnabled, startScan, getScan } from "../lib/api";
 import { useDemo } from "../state/DemoContext";
+import PrimaryButton from "../components/PrimaryButton";
 
 /**
  * Screen 7 — First Scan (loading / reveal). The "magic moment": an animated
- * scan, then transition to the savings summary. Starting the scan also flips
+ * scan, then a transition to the savings summary. Starting the scan also flips
  * the demo into the trial tier.
+ *
+ *  • Mock mode  — a fixed ~3.2s animation, then → /summary.
+ *  • Backend mode — kicks off a REAL inbox scan and polls its progress; the bar
+ *    completes only when the server says the scan is done, then hands the scan
+ *    result to /summary. A failed scan shows a plain fallback (ONBOARDING §5.5).
  */
 const STEPS = [
   "Reading your inbox…",
@@ -16,37 +23,131 @@ const STEPS = [
   "Ranking your best deals…",
 ];
 
+type Status = "scanning" | "done" | "error";
+
 export default function FirstScan() {
   const navigate = useNavigate();
-  const { goPremium } = useDemo();
-  const [progress, setProgress] = useState(0);
-  const [step, setStep] = useState(0);
+  const { goPremium, preferences } = useDemo();
   const { firstScan } = savings;
 
-  useEffect(() => {
-    goPremium("trial");
-  }, [goPremium]);
+  const [progress, setProgress] = useState(0);
+  const [step, setStep] = useState(0);
+  const [scanned, setScanned] = useState(0);
+  const [status, setStatus] = useState<Status>("scanning");
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  // Real scan result handed to the summary screen.
+  const scanResult = useRef<{ foundTotal: number; offersFound: number; messagesScanned: number } | null>(null);
 
+  // ── Drive the scan (real or mocked) ────────────────────────────────────────
   useEffect(() => {
-    const start = performance.now();
-    const duration = 3200;
-    let raf = 0;
+    if (!backendEnabled) {
+      // Mock: flip to trial locally and complete after a reassuring beat.
+      void goPremium("trial");
+      const t = setTimeout(() => setStatus("done"), 3200);
+      return () => clearTimeout(t);
+    }
 
-    const tick = (now: number) => {
-      const t = Math.min(1, (now - start) / duration);
-      setProgress(t);
-      setStep(Math.min(STEPS.length - 1, Math.floor(t * STEPS.length)));
-      if (t < 1) {
-        raf = requestAnimationFrame(tick);
-      } else {
-        setTimeout(() => navigate("/summary"), 450);
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    (async () => {
+      try {
+        // Start the trial server-side FIRST — scanning is premium-gated (402
+        // otherwise). Then kick off the real scan.
+        await goPremium("trial");
+        if (cancelled) return;
+        const { scanId } = await startScan({
+          categories: preferences.categories.map((c) => c.toLowerCase()),
+          brands: preferences.brands,
+        });
+        const poll = async () => {
+          if (cancelled) return;
+          const { scan } = await getScan(scanId);
+          setScanned(scan.messagesScanned);
+          if (scan.status === "done") {
+            scanResult.current = {
+              foundTotal: scan.foundTotal,
+              offersFound: scan.offersFound,
+              messagesScanned: scan.messagesScanned,
+            };
+            setStatus("done");
+          } else if (scan.status === "error") {
+            setErrorMsg(scan.error ?? "The scan couldn't finish.");
+            setStatus("error");
+          } else {
+            timer = setTimeout(poll, 1200);
+          }
+        };
+        await poll();
+      } catch (err) {
+        if (!cancelled) {
+          setErrorMsg(err instanceof Error ? err.message : "The scan couldn't start.");
+          setStatus("error");
+        }
       }
+    })();
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ── Visual progress easing (caps below 1 until the scan actually finishes) ──
+  useEffect(() => {
+    if (status === "error") return;
+    let raf = 0;
+    const tick = () => {
+      setProgress((p) => {
+        const target = status === "done" ? 1 : 0.95;
+        const next = p + (target - p) * 0.06;
+        return next > 0.999 ? 1 : next;
+      });
+      raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [navigate]);
+  }, [status]);
 
-  const scanned = Math.round(progress * firstScan.scannedMessages);
+  // Advance the checklist with progress.
+  useEffect(() => {
+    setStep(Math.min(STEPS.length - 1, Math.floor(progress * STEPS.length)));
+    if (status === "done" && progress >= 0.999) {
+      const t = setTimeout(
+        () => navigate("/summary", { state: { scan: scanResult.current } }),
+        450,
+      );
+      return () => clearTimeout(t);
+    }
+  }, [progress, status, navigate]);
+
+  // Mock mode shows a counted denominator; backend mode just counts up.
+  const displayScanned = backendEnabled
+    ? scanned
+    : Math.round(progress * firstScan.scannedMessages);
+
+  if (status === "error") {
+    return (
+      <div className="flex h-full flex-col items-center justify-center bg-surface px-8 text-center">
+        <span className="flex h-16 w-16 items-center justify-center rounded-full bg-urgency-tint text-accent-pressed">
+          <AlertCircle size={32} />
+        </span>
+        <h1 className="mt-6 text-h1 text-ink">We hit a snag scanning</h1>
+        <p className="mt-2 max-w-xs text-body text-ink-muted">
+          {errorMsg ?? "Something interrupted the scan."} You can try again or browse deals while we
+          sort it out.
+        </p>
+        <div className="mt-6 w-full max-w-xs space-y-2">
+          <PrimaryButton onClick={() => window.location.reload()}>Try again</PrimaryButton>
+          <button
+            onClick={() => navigate("/feed")}
+            className="w-full py-2 text-label font-semibold text-ink-muted"
+          >
+            Browse deals
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full flex-col items-center justify-center bg-surface px-8 text-center">
@@ -64,7 +165,9 @@ export default function FirstScan() {
 
       <h1 className="mt-8 text-h1 text-ink">Scanning your inbox</h1>
       <p className="nums mt-1.5 text-body text-ink-muted">
-        {scanned.toLocaleString()} of {firstScan.scannedMessages.toLocaleString()} messages
+        {backendEnabled
+          ? `${displayScanned.toLocaleString()} messages scanned`
+          : `${displayScanned.toLocaleString()} of ${firstScan.scannedMessages.toLocaleString()} messages`}
       </p>
 
       {/* Progress bar */}

@@ -1,0 +1,6 @@
+# Never upload local secrets — production env lives in Vercel's env settings.
+.env
+.env.*
+!.env.example
+node_modules
+dist

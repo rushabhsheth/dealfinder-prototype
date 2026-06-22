@@ -11,6 +11,7 @@
  */
 
 import { supabase } from "./supabase";
+import type { Deal, EnrolledBrand } from "../types";
 
 const API_BASE = import.meta.env.VITE_API_BASE?.replace(/\/$/, "");
 
@@ -147,4 +148,120 @@ export function startGoogleConnect(): Promise<{ authorizeUrl: string }> {
 
 export function disconnectInbox(id: string): Promise<{ disconnected: boolean }> {
   return request(`/connections/${id}/disconnect`, { method: "POST" });
+}
+
+// ── Scan, offers, brands, savings (Phase 2) ──────────────────────────────────
+
+export interface ScanProgress {
+  id: string;
+  status: "queued" | "running" | "done" | "error";
+  messagesScanned: number;
+  offersFound: number;
+  foundTotal: number;
+  error: string | null;
+  startedAt: string | null;
+  finishedAt: string | null;
+}
+
+export interface ScanPreferences {
+  categories: string[];
+  brands: string[];
+}
+
+/** Kick off an async inbox scan. Pass the user's personalization seeds for fit. */
+export function startScan(
+  preferences?: ScanPreferences,
+): Promise<{ scanId: string }> {
+  return request("/scans", {
+    method: "POST",
+    body: JSON.stringify({ preferences }),
+  });
+}
+
+export function getScan(id: string): Promise<{ scan: ScanProgress }> {
+  return request(`/scans/${id}`);
+}
+
+/** The personalized feed — already ranked payout-blind server-side. */
+export function getOffers(): Promise<{ offers: Deal[] }> {
+  return request("/offers");
+}
+
+export function getOffer(id: string): Promise<{ offer: Deal }> {
+  return request(`/offers/${id}`);
+}
+
+export function redeemOffer(id: string): Promise<{ redeemed: boolean; saved: number }> {
+  return request(`/offers/${id}/redeem`, { method: "POST" });
+}
+
+export function getBrands(): Promise<{ brands: EnrolledBrand[] }> {
+  return request("/brands");
+}
+
+export interface SavingsResponse {
+  surfaced: number;
+  redeemed: number;
+  available: number;
+  cumulative: {
+    totalSaved: number;
+    surfacedValue: number;
+    availableValue: number;
+    dealsRedeemed: number;
+    offersSurfaced: number;
+    averageSavingPercent: number;
+    byCategory: { category: Deal["category"]; saved: number }[];
+    timeline: { date: string; total: number }[];
+  };
+  recent: { dealId: string | null; brand: string; saved: number; redeemedAt: string }[];
+}
+
+export function getSavings(): Promise<{ savings: SavingsResponse }> {
+  return request("/me/savings");
+}
+
+// ── Enrolled Brands controls (Phase C) ───────────────────────────────────────
+export function pauseBrand(id: string): Promise<{ brand: EnrolledBrand }> {
+  return request(`/brands/${id}/pause`, { method: "POST" });
+}
+
+export function unsubscribeBrand(id: string): Promise<{
+  brand: EnrolledBrand;
+  unsubscribed: boolean;
+  /** How it was executed: real one-click POST, a mailto we can't auto-send, or none. */
+  method: "http" | "mailto" | "none";
+  /** True only when a standardized unsubscribe was actually sent. */
+  sent: boolean;
+}> {
+  return request(`/brands/${id}/unsubscribe`, { method: "POST" });
+}
+
+export function reenrollBrand(id: string): Promise<{ brand: EnrolledBrand }> {
+  return request(`/brands/${id}/reenroll`, { method: "POST" });
+}
+
+// ── Entitlements (Phase D) ───────────────────────────────────────────────────
+export interface Entitlement {
+  tier: "free" | "trial" | "paid";
+  trialStartedAt: string | null;
+  trialEndsAt: string | null;
+  downgraded: boolean;
+  isPremium: boolean;
+  trialDaysLeft: number;
+}
+
+export function getEntitlement(): Promise<{ entitlement: Entitlement }> {
+  return request("/me/entitlement");
+}
+
+export function startTrial(): Promise<{ entitlement: Entitlement }> {
+  return request("/me/entitlement/trial", { method: "POST" });
+}
+
+export function subscribePlan(): Promise<{ entitlement: Entitlement }> {
+  return request("/me/entitlement/subscribe", { method: "POST" });
+}
+
+export function cancelPlan(): Promise<{ entitlement: Entitlement }> {
+  return request("/me/entitlement/cancel", { method: "POST" });
 }

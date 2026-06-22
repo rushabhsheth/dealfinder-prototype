@@ -41,6 +41,12 @@ const EnvSchema = z.object({
 
   // Anthropic — Phase 2 extraction. Optional now.
   ANTHROPIC_API_KEY: z.string().optional(),
+  // Swappable extraction model (Haiku is cheap at scan volume; Sonnet for quality).
+  ANTHROPIC_MODEL: z.string().default("claude-haiku-4-5-20251001"),
+
+  // Scan bounds (first scan). Configurable so cost/latency can be tuned.
+  SCAN_MAX_MESSAGES: z.coerce.number().int().positive().default(120),
+  SCAN_LOOKBACK_DAYS: z.coerce.number().int().positive().default(90),
 });
 
 export type AppConfig = Readonly<{
@@ -57,6 +63,8 @@ export type AppConfig = Readonly<{
     redirectUri?: string;
   };
   anthropicApiKey?: string;
+  anthropicModel: string;
+  scan: { maxMessages: number; lookbackDays: number };
 }>;
 
 function load(): AppConfig {
@@ -89,6 +97,11 @@ function load(): AppConfig {
       redirectUri: env.GOOGLE_OAUTH_REDIRECT_URI,
     },
     anthropicApiKey: env.ANTHROPIC_API_KEY,
+    anthropicModel: env.ANTHROPIC_MODEL,
+    scan: {
+      maxMessages: env.SCAN_MAX_MESSAGES,
+      lookbackDays: env.SCAN_LOOKBACK_DAYS,
+    },
   });
 }
 
@@ -101,4 +114,9 @@ export function googleConfigured(): boolean {
       config.google.clientSecret &&
       config.google.redirectUri,
   );
+}
+
+/** True once the Anthropic key is present (required for Phase 2 extraction). */
+export function anthropicConfigured(): boolean {
+  return Boolean(config.anthropicApiKey);
 }

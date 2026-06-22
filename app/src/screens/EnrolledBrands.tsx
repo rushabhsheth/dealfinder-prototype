@@ -9,14 +9,17 @@ import {
   PlayCircle,
   MailX,
 } from "lucide-react";
-import type { BrandStatus, EnrolledBrand } from "../types";
-import { enrolledBrands, getDeal, CATEGORY_LABELS } from "../lib/data";
+import type { BrandStatus, Deal, EnrolledBrand } from "../types";
+import { loadEnrolledBrands, loadDeal, CATEGORY_LABELS } from "../lib/data";
+import { backendEnabled, pauseBrand, unsubscribeBrand, reenrollBrand } from "../lib/api";
+import { useAsync } from "../lib/useAsync";
 import { usd, shortDate } from "../lib/format";
 import { useDemo } from "../state/DemoContext";
 import { useToast } from "../components/Toast";
 import TopBar from "../components/TopBar";
 import BrandMark from "../components/BrandMark";
 import PrimaryButton from "../components/PrimaryButton";
+import ScreenState from "../components/ScreenState";
 
 type Filter = "all" | "enrolled" | "detected" | "paused";
 type Sort = "value" | "recent" | "emails" | "az";
@@ -48,18 +51,29 @@ export default function EnrolledBrands() {
 
   const isPremium = tier === "trial" || tier === "paid";
 
+  const {
+    data: brands,
+    loading,
+    error,
+    reload,
+  } = useAsync<EnrolledBrand[]>(
+    () => (isPremium ? loadEnrolledBrands() : Promise.resolve([])),
+    [isPremium],
+  );
+  const allBrands = brands ?? [];
+
   // Effective status = user's override (if any) over the brand's baseline.
   const statusOf = (b: EnrolledBrand): BrandStatus => brandStatus[b.id] ?? b.status;
 
   const summary = useMemo(() => {
-    const brands = enrolledBrands.length;
-    const deals = enrolledBrands.reduce((n, b) => n + b.dealsSurfaced, 0);
-    const saved = enrolledBrands.reduce((n, b) => n + b.totalSaved, 0);
-    return { brands, deals, saved };
-  }, []);
+    const count = allBrands.length;
+    const deals = allBrands.reduce((n, b) => n + b.dealsSurfaced, 0);
+    const saved = allBrands.reduce((n, b) => n + b.totalSaved, 0);
+    return { brands: count, deals, saved };
+  }, [allBrands]);
 
   const rows = useMemo(() => {
-    const filtered = enrolledBrands.filter((b) => {
+    const filtered = allBrands.filter((b) => {
       if (filter === "enrolled") return b.source === "enrolled";
       if (filter === "detected") return b.source === "detected";
       if (filter === "paused") return statusOf(b) === "paused";
@@ -74,11 +88,42 @@ export default function EnrolledBrands() {
     return sorted;
     // statusOf reads brandStatus, so depend on it for the "paused" filter.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filter, sort, brandStatus]);
+  }, [filter, sort, brandStatus, allBrands]);
 
-  const openBrand = enrolledBrands.find((b) => b.id === openId) ?? null;
+  const openBrand = allBrands.find((b) => b.id === openId) ?? null;
 
   if (!isPremium) return <LockedState downgraded={downgraded} />;
+
+  if (loading) {
+    return (
+      <div className="flex h-full flex-col bg-surface">
+        <TopBar back title="Enrolled brands" />
+        <ScreenState variant="loading" message="Loading your brands…" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-full flex-col bg-surface">
+        <TopBar back title="Enrolled brands" />
+        <ScreenState variant="error" message={error} onRetry={reload} />
+      </div>
+    );
+  }
+
+  if (allBrands.length === 0) {
+    return (
+      <div className="flex h-full flex-col bg-surface">
+        <TopBar back title="Enrolled brands" />
+        <ScreenState
+          variant="empty"
+          title="No brands yet"
+          message="Once your inbox scan finishes, the brands sending you deals show up here."
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full flex-col bg-surface">
@@ -154,6 +199,7 @@ export default function EnrolledBrands() {
           status={statusOf(openBrand)}
           onClose={() => setOpenId(null)}
           onSetStatus={setBrandStatus}
+          onChanged={reload}
         />
       )}
     </div>
@@ -250,30 +296,77 @@ function BrandSheet({
   status,
   onClose,
   onSetStatus,
+  onChanged,
 }: {
   brand: EnrolledBrand;
   status: BrandStatus;
   onClose: () => void;
   onSetStatus: (id: string, status: BrandStatus) => void;
+  onChanged: () => void;
 }) {
   const navigate = useNavigate();
   const toast = useToast();
   const [confirmingUnsub, setConfirmingUnsub] = useState(false);
+  const [busy, setBusy] = useState(false);
 
-  const offers = brand.offerDealIds.map(getDeal).filter((d): d is NonNullable<typeof d> => !!d);
+  const { data: fetchedOffers } = useAsync<Deal[]>(
+    () =>
+      Promise.all(brand.offerDealIds.map((id) => loadDeal(id))).then((ds) =>
+        ds.filter((d): d is Deal => Boolean(d)),
+      ),
+    [brand.id],
+  );
+  const offers = fetchedOffers ?? [];
 
-  const pause = () => {
-    onSetStatus(brand.id, "paused");
-    toast.show(`Paused ${brand.brand}`);
+  // Backend mode: hit the real endpoint, reconcile via reload, close on success.
+  // Mock mode: flip the local override (DemoContext), keep the sheet open.
+  const runControl = async (
+    next: BrandStatus,
+    label: string,
+    call: () => Promise<unknown>,
+  ) => {
+    if (busy) return;
+    if (!backendEnabled) {
+      onSetStatus(brand.id, next);
+      toast.show(label);
+      return;
+    }
+    setBusy(true);
+    try {
+      await call();
+      onChanged();
+      toast.show(label);
+      onClose();
+    } catch {
+      toast.show("Couldn't update — please try again");
+    } finally {
+      setBusy(false);
+    }
   };
-  const reEnroll = () => {
-    onSetStatus(brand.id, "active");
-    toast.show(`Re-enrolled ${brand.brand}`);
-  };
-  const unsubscribe = () => {
-    onSetStatus(brand.id, "unsubscribed");
+
+  const pause = () =>
+    runControl("paused", `Paused ${brand.brand}`, () => pauseBrand(brand.id));
+  const reEnroll = () =>
+    runControl("active", `Re-enrolled ${brand.brand}`, () => reenrollBrand(brand.id));
+  const unsubscribe = async () => {
     setConfirmingUnsub(false);
-    toast.show(`Unsubscribed from ${brand.brand}`);
+    if (busy) return;
+    if (!backendEnabled) {
+      onSetStatus(brand.id, "unsubscribed");
+      toast.show(`Unsubscribed from ${brand.brand}`);
+      return;
+    }
+    setBusy(true);
+    try {
+      const r = await unsubscribeBrand(brand.id);
+      onChanged();
+      toast.show(r.sent ? `Unsubscribed from ${brand.brand}` : `Marked ${brand.brand} unsubscribed`);
+      onClose();
+    } catch {
+      toast.show("Couldn't unsubscribe — please try again");
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
