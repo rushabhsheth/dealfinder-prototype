@@ -196,98 +196,20 @@ async function processMessage(
   return { offers: newRows.length, total };
 }
 
-async function finalize(
-  scanId: string,
-  status: "done" | "error",
-  progress: ScanProgress,
-  error?: string,
-): Promise<void> {
-  await adminDb
-    .from("scans")
-    .update({
-      status,
-      messages_scanned: progress.messages,
-      offers_found: progress.offers,
-      found_total: Math.round(progress.total * 100) / 100,
-      error: error ?? null,
-      finished_at: new Date().toISOString(),
-    })
-    .eq("id", scanId);
-}
-
-/** The async body. Never throws to the caller — errors land on the scan row. */
-async function runScan(
-  scanId: string,
-  userId: string,
-  prefs: RankPreferences,
-): Promise<void> {
-  const progress: ScanProgress = { messages: 0, offers: 0, total: 0 };
-  try {
-    await adminDb
-      .from("scans")
-      .update({ status: "running", started_at: new Date().toISOString() })
-      .eq("id", scanId);
-
-    const conn = await getActiveGoogleConnection(userId);
-    if (!conn) throw new Error("No active inbox connection");
-    const token = await getFreshAccessToken(conn);
-
-    const ids = await gmailProvider.listPromoMessageIds(token, {
-      maxResults: config.scan.maxMessages,
-      query: `newer_than:${config.scan.lookbackDays}d`,
-    });
-
-    await mapPool(ids, CONCURRENCY, async (id) => {
-      try {
-        const msg = await gmailProvider.getMessage(token, id);
-        const r = await processMessage(userId, msg, prefs);
-        progress.messages += 1;
-        progress.offers += r.offers;
-        progress.total += r.total;
-        // Cheap progress beats — let the First Scan screen show movement.
-        if (progress.messages % 10 === 0) {
-          await adminDb
-            .from("scans")
-            .update({
-              messages_scanned: progress.messages,
-              offers_found: progress.offers,
-              found_total: Math.round(progress.total * 100) / 100,
-            })
-            .eq("id", scanId);
-        }
-      } catch (err) {
-        // One bad message shouldn't sink the scan.
-        progress.messages += 1;
-        void err;
-      }
-    });
-
-    await markSynced(conn.id);
-    await finalize(scanId, "done", progress);
-  } catch (err) {
-    await finalize(
-      scanId,
-      "error",
-      progress,
-      err instanceof Error ? err.message : "scan failed",
-    );
-  }
-}
+/** How many messages each poll processes — sized to comfortably fit one short
+ *  serverless invocation (LLM extraction is a few seconds per message). */
+const BATCH_SIZE = 6;
 
 export interface StartScanResult {
   scanId: string;
-  /**
-   * The worker promise. On Vercel the route hands this to `waitUntil` so the
-   * serverless function isn't frozen mid-scan after the response is sent; the
-   * caller otherwise lets it run fire-and-forget (a long-lived local server
-   * keeps it alive on its own).
-   */
-  done: Promise<void>;
 }
 
 /**
- * Create a scan row and kick off the async worker. Throws (handled by the route)
- * if the user has no connected inbox or extraction isn't configured.
+ * Start a scan: list the promo message ids ONCE (a single fast Gmail call) and
+ * store them on the scan row. The extraction then happens incrementally, one
+ * batch per poll (advanceScan) — serverless-safe, with no background work that
+ * Vercel could freeze after the response. Throws (handled by the route) if the
+ * user has no connected inbox or extraction isn't configured.
  */
 export async function startScan(
   userId: string,
@@ -298,20 +220,170 @@ export async function startScan(
   }
   const conn = await getActiveGoogleConnection(userId);
   if (!conn) throw new Error("No active inbox connection");
+  const token = await getFreshAccessToken(conn);
 
+  const ids = await gmailProvider.listPromoMessageIds(token, {
+    maxResults: config.scan.maxMessages,
+    query: `newer_than:${config.scan.lookbackDays}d`,
+  });
+
+  const now = new Date().toISOString();
+  const empty = ids.length === 0;
   const { data, error } = await adminDb
     .from("scans")
-    .insert({ user_id: userId, connection_id: conn.id, status: "queued" })
+    .insert({
+      user_id: userId,
+      connection_id: conn.id,
+      status: empty ? "done" : "running",
+      message_ids: ids,
+      cursor: 0,
+      prefs,
+      messages_scanned: 0,
+      offers_found: 0,
+      found_total: 0,
+      started_at: now,
+      finished_at: empty ? now : null,
+    })
     .select("id")
     .single();
   if (error) throw new Error(error.message);
-  const scanId = (data as { id: string }).id;
+  return { scanId: (data as { id: string }).id };
+}
 
-  // Progress + completion are written to the scan row; the route keeps the
-  // worker alive (waitUntil on Vercel, fire-and-forget locally).
-  const done = runScan(scanId, userId, prefs);
+interface ScanRow {
+  id: string;
+  status: ScanStatus["status"];
+  message_ids: unknown;
+  cursor: number | null;
+  prefs: unknown;
+  messages_scanned: number;
+  offers_found: number;
+  found_total: number | string;
+  error: string | null;
+  started_at: string | null;
+  finished_at: string | null;
+}
 
-  return { scanId, done };
+function rowToStatus(r: ScanRow): ScanStatus {
+  return {
+    id: r.id,
+    status: r.status,
+    messagesScanned: r.messages_scanned,
+    offersFound: r.offers_found,
+    foundTotal:
+      typeof r.found_total === "string" ? Number(r.found_total) : r.found_total,
+    error: r.error,
+    startedAt: r.started_at,
+    finishedAt: r.finished_at,
+  };
+}
+
+/**
+ * Advance a running scan by one batch and return its latest status. Called on
+ * every poll: because each poll is a fresh, short serverless invocation, the
+ * scan completes reliably across polls — no dependence on background work
+ * surviving past the HTTP response. Returns null if the scan isn't found.
+ *
+ * Idempotency: `cursor` only advances after a batch's offers are written, so a
+ * poll that times out mid-batch simply re-runs it next time; duplicate offers
+ * are dropped by the unique(user_id, dedup_hash) upsert.
+ */
+export async function advanceScan(
+  userId: string,
+  scanId: string,
+): Promise<ScanStatus | null> {
+  const { data, error } = await adminDb
+    .from("scans")
+    .select(
+      "id, status, message_ids, cursor, prefs, messages_scanned, offers_found, found_total, error, started_at, finished_at",
+    )
+    .eq("user_id", userId)
+    .eq("id", scanId)
+    .limit(1);
+  if (error) throw new Error(error.message);
+  const row = data?.[0] as ScanRow | undefined;
+  if (!row) return null;
+  if (row.status !== "running") return rowToStatus(row);
+
+  const ids = Array.isArray(row.message_ids) ? (row.message_ids as string[]) : [];
+  const cursor = row.cursor ?? 0;
+  const batch = ids.slice(cursor, cursor + BATCH_SIZE);
+
+  // Nothing left to process → finalize.
+  if (batch.length === 0) {
+    const finishedAt = new Date().toISOString();
+    await adminDb
+      .from("scans")
+      .update({ status: "done", finished_at: finishedAt })
+      .eq("id", scanId);
+    return { ...rowToStatus(row), status: "done", finishedAt };
+  }
+
+  const prefs = (row.prefs as RankPreferences) ?? NEUTRAL_PREFERENCES;
+  try {
+    const conn = await getActiveGoogleConnection(userId);
+    if (!conn) throw new Error("No active inbox connection");
+    const token = await getFreshAccessToken(conn);
+
+    // Process this batch in parallel; one bad message doesn't sink the batch.
+    const results = await Promise.allSettled(
+      batch.map(async (id) => {
+        const msg = await gmailProvider.getMessage(token, id);
+        return processMessage(userId, msg, prefs);
+      }),
+    );
+    let offersDelta = 0;
+    let totalDelta = 0;
+    for (const r of results) {
+      if (r.status === "fulfilled") {
+        offersDelta += r.value.offers;
+        totalDelta += r.value.total;
+      }
+    }
+
+    const newCursor = cursor + batch.length;
+    const finished = newCursor >= ids.length;
+    const messagesScanned = row.messages_scanned + batch.length;
+    const offersFound = row.offers_found + offersDelta;
+    const prevTotal =
+      typeof row.found_total === "string"
+        ? Number(row.found_total)
+        : row.found_total;
+    const foundTotal = Math.round((prevTotal + totalDelta) * 100) / 100;
+    const finishedAt = finished ? new Date().toISOString() : null;
+
+    await adminDb
+      .from("scans")
+      .update({
+        cursor: newCursor,
+        messages_scanned: messagesScanned,
+        offers_found: offersFound,
+        found_total: foundTotal,
+        ...(finished ? { status: "done", finished_at: finishedAt } : {}),
+      })
+      .eq("id", scanId);
+    if (finished) await markSynced(conn.id);
+
+    return {
+      id: scanId,
+      status: finished ? "done" : "running",
+      messagesScanned,
+      offersFound,
+      foundTotal,
+      error: null,
+      startedAt: row.started_at,
+      finishedAt,
+    };
+  } catch (err) {
+    // A connection/token failure ends the scan; the UI offers a retry.
+    const msg = err instanceof Error ? err.message : "scan failed";
+    const finishedAt = new Date().toISOString();
+    await adminDb
+      .from("scans")
+      .update({ status: "error", error: msg, finished_at: finishedAt })
+      .eq("id", scanId);
+    return { ...rowToStatus(row), status: "error", error: msg, finishedAt };
+  }
 }
 
 export interface ScanStatus {

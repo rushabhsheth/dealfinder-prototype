@@ -1,13 +1,16 @@
 import type { FastifyInstance } from "fastify";
-import { waitUntil } from "@vercel/functions";
 import { requireUser, requirePremium } from "../auth/middleware.js";
-import { startScan, getScanStatus } from "../services/scan.js";
+import { startScan, advanceScan } from "../services/scan.js";
 import { NEUTRAL_PREFERENCES, type RankPreferences } from "../services/ranking.js";
 
 /**
  * Scan routes (Phase 2).
- *   POST /scans       start an async inbox scan → { scanId }
- *   GET  /scans/:id   poll status/progress for the First Scan screen
+ *   POST /scans       start a scan (lists promo message ids) → { scanId }
+ *   GET  /scans/:id   poll: advances the scan by one batch + returns progress
+ *
+ * The scan runs CHUNKED — each poll processes a batch of messages within its own
+ * short serverless invocation — so it completes reliably on Vercel without
+ * background work that gets frozen after the response.
  *
  * Premium-gated (requirePremium): scanning is a trial/paid capability; an expired
  * trial is downgraded lazily and rejected with 402 (the frontend shows locked).
@@ -31,15 +34,7 @@ export async function scanRoutes(app: FastifyInstance): Promise<void> {
     };
 
     try {
-      const { scanId, done } = await startScan(req.user!.id, prefs);
-      // Keep the worker alive past the response. On Vercel `waitUntil` extends
-      // the function's lifetime until the scan finishes (up to maxDuration);
-      // locally it's a no-op and the long-lived server runs `done` anyway.
-      try {
-        waitUntil(done);
-      } catch {
-        void done;
-      }
+      const { scanId } = await startScan(req.user!.id, prefs);
       return reply.send({ scanId });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "scan failed to start";
@@ -50,7 +45,8 @@ export async function scanRoutes(app: FastifyInstance): Promise<void> {
 
   app.get("/scans/:id", { preHandler: [requireUser, requirePremium] }, async (req, reply) => {
     const { id } = req.params as { id: string };
-    const scan = await getScanStatus(req.user!.id, id);
+    // Polling drives the work: advance the scan by one batch, then return status.
+    const scan = await advanceScan(req.user!.id, id);
     if (!scan) return reply.code(404).send({ error: "Scan not found" });
     return reply.send({ scan });
   });
