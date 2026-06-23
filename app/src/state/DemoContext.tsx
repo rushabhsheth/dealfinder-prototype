@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { BrandStatus, Tier, UserPreferences } from "../types";
+import type { BrandStatus, DealInterest, Tier, UserPreferences } from "../types";
 import { DEFAULT_PREFERENCES } from "../lib/preferences";
 import {
   backendEnabled,
@@ -31,6 +31,11 @@ interface DemoState {
   redeemedIds: string[];
   redeem: (dealId: string) => void;
   hasRedeemed: (dealId: string) => boolean;
+  /** Per-deal interest signal (Interested / Maybe / Not for me) the user sets
+   *  from the feed. `null` clears it. Drives feed grouping/hiding, demo-only. */
+  interest: Record<string, DealInterest>;
+  setInterest: (dealId: string, value: DealInterest | null) => void;
+  getInterest: (dealId: string) => DealInterest | null;
   /** Personalization inputs from the Interest Survey / Settings → Preferences. */
   preferences: UserPreferences;
   setPreferences: (patch: Partial<UserPreferences>) => void;
@@ -63,6 +68,7 @@ interface Persisted {
   tier: Tier;
   downgraded: boolean;
   redeemedIds: string[];
+  interest: Record<string, DealInterest>;
   preferences: UserPreferences;
   brandStatus: Record<string, BrandStatus>;
   inboxConnected: boolean;
@@ -73,6 +79,7 @@ function load(): Persisted {
     tier: "trial",
     downgraded: false,
     redeemedIds: [],
+    interest: {},
     preferences: DEFAULT_PREFERENCES,
     brandStatus: {},
     inboxConnected: true,
@@ -91,6 +98,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
   const [tier, setTierState] = useState<Tier>(initial.tier);
   const [downgraded, setDowngraded] = useState<boolean>(initial.downgraded);
   const [redeemedIds, setRedeemedIds] = useState<string[]>(initial.redeemedIds);
+  const [interest, setInterestState] = useState<Record<string, DealInterest>>(initial.interest);
   const [preferences, setPreferencesState] = useState<UserPreferences>(initial.preferences);
   const [brandStatus, setBrandStatusState] = useState<Record<string, BrandStatus>>(
     initial.brandStatus
@@ -103,12 +111,20 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     try {
       localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({ tier, downgraded, redeemedIds, preferences, brandStatus, inboxConnected })
+        JSON.stringify({
+          tier,
+          downgraded,
+          redeemedIds,
+          interest,
+          preferences,
+          brandStatus,
+          inboxConnected,
+        })
       );
     } catch {
       // ignore quota / private-mode errors
     }
-  }, [tier, downgraded, redeemedIds, preferences, brandStatus, inboxConnected]);
+  }, [tier, downgraded, redeemedIds, interest, preferences, brandStatus, inboxConnected]);
 
   const setTier = useCallback((t: Tier) => setTierState(t), []);
 
@@ -169,6 +185,23 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     [redeemedIds]
   );
 
+  const setInterest = useCallback((dealId: string, value: DealInterest | null) => {
+    setInterestState((prev) => {
+      if (value === null) {
+        if (!(dealId in prev)) return prev;
+        const next = { ...prev };
+        delete next[dealId];
+        return next;
+      }
+      return { ...prev, [dealId]: value };
+    });
+  }, []);
+
+  const getInterest = useCallback(
+    (dealId: string) => interest[dealId] ?? null,
+    [interest]
+  );
+
   const setPreferences = useCallback((patch: Partial<UserPreferences>) => {
     setPreferencesState((prev) => ({ ...prev, ...patch }));
   }, []);
@@ -181,6 +214,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     setTierState("trial");
     setDowngraded(false);
     setRedeemedIds([]);
+    setInterestState({});
     setPreferencesState(DEFAULT_PREFERENCES);
     setBrandStatusState({});
     setInboxConnected(true);
@@ -194,6 +228,9 @@ export function DemoProvider({ children }: { children: ReactNode }) {
       redeemedIds,
       redeem,
       hasRedeemed,
+      interest,
+      setInterest,
+      getInterest,
       preferences,
       setPreferences,
       brandStatus,
@@ -213,6 +250,9 @@ export function DemoProvider({ children }: { children: ReactNode }) {
       redeemedIds,
       redeem,
       hasRedeemed,
+      interest,
+      setInterest,
+      getInterest,
       preferences,
       setPreferences,
       brandStatus,

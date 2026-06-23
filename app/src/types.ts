@@ -3,6 +3,8 @@
 export type DealTier = "public" | "personalized";
 export type DealCategory = "travel" | "retail" | "dining" | "tech";
 export type RedeemType = "code" | "book" | "link";
+/** A user's signal on an offer in the feed (Interested / Maybe / Not for me). */
+export type DealInterest = "interested" | "maybe" | "not";
 
 export interface Deal {
   id: string;
