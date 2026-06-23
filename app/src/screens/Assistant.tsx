@@ -4,7 +4,7 @@ import { Send, Sparkles, ChevronRight } from "lucide-react";
 import { getDeal } from "../lib/data";
 import { usd } from "../lib/format";
 import { agentReply, GREETING, type AgentReply } from "../lib/agent";
-import TopBar from "../components/TopBar";
+import ScreenHeader from "../components/ScreenHeader";
 import BrandMark from "../components/BrandMark";
 
 /**
@@ -31,14 +31,14 @@ export default function Assistant() {
   const [messages, setMessages] = useState<Message[]>([toMessage(GREETING)]);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
 
   const lastFollowups = !typing
     ? messages.filter((m) => m.role === "assistant").at(-1)?.followups ?? []
     : [];
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, [messages, typing]);
 
   function send(text: string) {
@@ -55,18 +55,17 @@ export default function Assistant() {
   }
 
   return (
-    <div className="flex h-full flex-col bg-surface">
-      <TopBar
-        back
+    <div className="mx-auto flex w-full max-w-2xl flex-col">
+      <ScreenHeader
         title={
           <span className="inline-flex items-center gap-1.5">
-            <Sparkles size={16} className="text-primary" /> Scout
+            <Sparkles size={20} className="text-primary" /> Scout
           </span>
         }
       />
 
       {/* Messages */}
-      <div ref={scrollRef} className="no-scrollbar flex-1 space-y-3 overflow-y-auto px-4 py-4">
+      <div className="space-y-3 py-2">
         {messages.map((m) =>
           m.role === "user" ? (
             <div key={m.id} className="flex justify-end">
@@ -89,10 +88,11 @@ export default function Assistant() {
             <Dot /> <Dot delay="150ms" /> <Dot delay="300ms" />
           </div>
         )}
+        <div ref={bottomRef} />
       </div>
 
       {/* Suggestions + input */}
-      <div className="shrink-0 border-t border-hairline bg-card/95 px-3 pb-6 pt-2 backdrop-blur">
+      <div className="sticky bottom-16 z-20 border-t border-hairline bg-surface/95 pb-3 pt-2 backdrop-blur lg:bottom-0">
         {lastFollowups.length > 0 && (
           <div className="no-scrollbar mb-2 flex gap-2 overflow-x-auto">
             {lastFollowups.map((f) => (

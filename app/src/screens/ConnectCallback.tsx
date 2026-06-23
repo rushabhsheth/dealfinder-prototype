@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { CheckCircle2, AlertCircle } from "lucide-react";
 import { useDemo } from "../state/DemoContext";
-import TopBar from "../components/TopBar";
 import PrimaryButton from "../components/PrimaryButton";
 
 /**
@@ -41,9 +40,8 @@ export default function ConnectCallback() {
   }, [success, setInboxConnected, navigate]);
 
   return (
-    <div className="flex h-full flex-col bg-surface">
-      <TopBar title="Connecting inbox" />
-      <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
+    <div className="py-10">
+      <div className="flex flex-col items-center text-center">
         {success ? (
           <>
             <CheckCircle2 size={48} className="text-savings" />

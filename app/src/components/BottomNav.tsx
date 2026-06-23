@@ -13,12 +13,14 @@ const ITEMS: NavItem[] = [
   { to: "/savings", label: "Savings", Icon: PiggyBank },
 ];
 
-/** BottomNav — Deals, Flights, Savings. Active item in teal. Settings now lives
- *  in the top-right header menu (HeaderMenu). */
+/** BottomNav — Deals, Flights, Savings. Active item in teal. Mobile-only: the
+ *  desktop/tablet TopNav takes over at md+. Fixed to the viewport bottom; the
+ *  AppShell pads its content (pb-16) so nothing hides behind it. Settings lives
+ *  in the drawer (HeaderMenu). */
 export default function BottomNav() {
   return (
-    <nav className="z-20 shrink-0 border-t border-hairline bg-card/95 backdrop-blur">
-      <div className="flex items-stretch justify-around px-2 pb-5 pt-2">
+    <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-hairline bg-card/95 backdrop-blur md:hidden">
+      <div className="mx-auto flex max-w-md items-stretch justify-around px-2 pb-5 pt-2">
         {ITEMS.map(({ to, label, Icon }) => (
           <NavLink
             key={to}

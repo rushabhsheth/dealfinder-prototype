@@ -31,10 +31,17 @@
     margin: 0;
     font-family: "Inter", system-ui, sans-serif;
     color: var(--ink-900);
-    /* Outside the phone frame: a calm neutral so the device reads as a device. */
-    background: #e9e2d4;
+    /* The responsive web app is full-bleed now — the app surface IS the page.
+       (The opt-in device preview re-applies the neutral behind the frame.) */
+    background: var(--surface);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+  }
+
+  /* Device-preview mode (?frame=phone) restores the neutral backdrop so the
+     PhoneFrame reads as a physical device on desktop. */
+  body[data-frame="phone"] {
+    background: #e9e2d4;
   }
 
   /* Tabular figures for all prices & savings so columns align. */

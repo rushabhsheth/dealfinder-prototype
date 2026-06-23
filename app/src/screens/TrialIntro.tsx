@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, ArrowRight } from "lucide-react";
+import { Sparkles, ArrowRight, ArrowLeft } from "lucide-react";
 import { savings } from "../lib/data";
 import { useDemo } from "../state/DemoContext";
 import type { TravelStyle } from "../types";
 import { CATEGORY_OPTIONS, BRAND_OPTIONS, TRAVEL_STYLE_OPTIONS } from "../lib/preferences";
 import { backendEnabled } from "../lib/api";
-import TopBar from "../components/TopBar";
 import PrimaryButton from "../components/PrimaryButton";
 import ChipGroup from "../components/ChipGroup";
 import SegmentedControl from "../components/SegmentedControl";
@@ -129,18 +128,19 @@ export default function TrialIntro() {
   };
 
   return (
-    <div className="flex h-full flex-col bg-surface">
-      <TopBar
-        back="/"
-        title={
-          <span className="inline-flex items-center gap-1.5">
-            <Sparkles size={16} className="text-primary" /> Scout
-          </span>
-        }
-      />
+    <div className="pt-2">
+      <button
+        onClick={() => navigate(-1)}
+        className="mb-4 inline-flex items-center gap-1.5 text-label font-semibold text-ink-muted hover:text-ink"
+      >
+        <ArrowLeft size={16} /> Back
+      </button>
+      <div className="mb-3 inline-flex items-center gap-1.5 text-label font-semibold text-ink">
+        <Sparkles size={16} className="text-primary" /> Scout
+      </div>
 
       {/* Conversation */}
-      <div ref={scrollRef} className="no-scrollbar flex-1 space-y-3 overflow-y-auto px-4 py-4">
+      <div ref={scrollRef} className="no-scrollbar space-y-3 py-2">
         {messages.map((m) =>
           m.role === "user" ? (
             <div key={m.id} className="flex justify-end">
@@ -173,7 +173,7 @@ export default function TrialIntro() {
       </div>
 
       {/* Answer area — changes with the current question */}
-      <div className="shrink-0 border-t border-hairline bg-card/95 px-4 pb-6 pt-3 backdrop-blur">
+      <div className="mt-4 border-t border-hairline pt-4">
         {step === "categories" && (
           <Answer disabled={typing}>
             <div className="no-scrollbar max-h-40 overflow-y-auto">

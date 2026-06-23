@@ -68,6 +68,7 @@ const config: Config = {
       },
       maxWidth: {
         phone: "390px", // mobile-first viewport
+        content: "1200px", // centered desktop content container
       },
     },
   },

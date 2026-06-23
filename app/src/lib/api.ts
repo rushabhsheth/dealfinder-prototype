@@ -141,6 +141,20 @@ export function listConnections(): Promise<{ connections: InboxConnection[] }> {
   return request("/connections");
 }
 
+/**
+ * Whether the signed-in user already has a connected inbox — used to route
+ * returning users straight to their feed instead of back through connect + scan.
+ * Resolves false (rather than throwing) when signed out or on error.
+ */
+export async function hasActiveInbox(): Promise<boolean> {
+  try {
+    const { connections } = await listConnections();
+    return connections.some((c) => c.status === "active");
+  } catch {
+    return false;
+  }
+}
+
 /** Returns the Google consent URL (gmail.readonly) to send the browser to. */
 export function startGoogleConnect(): Promise<{ authorizeUrl: string }> {
   return request("/connections/google/start", { method: "POST" });

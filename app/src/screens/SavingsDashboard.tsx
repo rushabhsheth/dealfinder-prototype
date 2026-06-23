@@ -3,8 +3,7 @@ import { TrendingUp, Receipt, Percent, type LucideIcon } from "lucide-react";
 import { loadSavings, CATEGORY_LABELS, type SavingsView } from "../lib/data";
 import { useAsync } from "../lib/useAsync";
 import { usd, shortDate } from "../lib/format";
-import BottomNav from "../components/BottomNav";
-import TopAppBar from "../components/TopAppBar";
+import ScreenHeader from "../components/ScreenHeader";
 import ScreenState from "../components/ScreenState";
 
 /**
@@ -18,18 +17,15 @@ export default function SavingsDashboard() {
   const { data, loading, error, reload } = useAsync<SavingsView>(loadSavings);
 
   return (
-    <div className="flex h-full flex-col">
-      <TopAppBar title="Your savings" />
-      <div className="no-scrollbar flex-1 overflow-y-auto px-4 pb-6">
-        {loading ? (
-          <ScreenState variant="loading" />
-        ) : error ? (
-          <ScreenState variant="error" message={error} onRetry={reload} />
-        ) : data ? (
-          <Dashboard data={data} onOpenDeal={(id) => navigate(`/deal/${id}`)} />
-        ) : null}
-      </div>
-      <BottomNav />
+    <div className="max-w-2xl">
+      <ScreenHeader title="Your savings" />
+      {loading ? (
+        <ScreenState variant="loading" />
+      ) : error ? (
+        <ScreenState variant="error" message={error} onRetry={reload} />
+      ) : data ? (
+        <Dashboard data={data} onOpenDeal={(id) => navigate(`/deal/${id}`)} />
+      ) : null}
     </div>
   );
 }

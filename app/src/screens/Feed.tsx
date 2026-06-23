@@ -11,8 +11,7 @@ import DealCard from "../components/DealCard";
 import DealGrade from "../components/DealGrade";
 import SavingsBadge from "../components/SavingsBadge";
 import CategoryChips from "../components/CategoryChips";
-import BottomNav from "../components/BottomNav";
-import TopAppBar from "../components/TopAppBar";
+import ScreenHeader from "../components/ScreenHeader";
 import UpsellNudge from "../components/UpsellNudge";
 import ScreenState from "../components/ScreenState";
 import BrandMark from "../components/BrandMark";
@@ -49,36 +48,32 @@ export default function Feed() {
   const showNudge = !isPremium && !nudgeDismissed;
 
   return (
-    <div className="flex h-full flex-col">
-      <TopAppBar title="Deals">
-        <div className="flex rounded-button bg-hairline/50 p-1">
+    <div>
+      <ScreenHeader title="Deals">
+        <div className="flex max-w-md rounded-button bg-hairline/50 p-1">
           <Segment label="For You" active={view === "foryou"} onClick={() => setView("foryou")} />
           <Segment label="All Deals" active={view === "all"} onClick={() => setView("all")} />
         </div>
-      </TopAppBar>
+      </ScreenHeader>
 
-      <div className="no-scrollbar flex-1 overflow-y-auto px-4 pb-6 pt-2">
-        {showNudge && <UpsellNudge />}
+      {showNudge && <UpsellNudge />}
 
-        {view === "foryou" ? (
-          isPremium ? (
-            <ForYou tier={tier} navigate={navigate} />
-          ) : (
-            <ForYouLocked onStartTrial={() => navigate("/trial")} />
-          )
+      {view === "foryou" ? (
+        isPremium ? (
+          <ForYou tier={tier} navigate={navigate} />
         ) : (
-          <AllDeals
-            downgraded={downgraded}
-            categories={categories}
-            category={category}
-            onCategory={setCategory}
-            deals={visiblePublic}
-            onResubscribe={() => navigate("/paywall")}
-          />
-        )}
-      </div>
-
-      <BottomNav />
+          <ForYouLocked onStartTrial={() => navigate("/trial")} />
+        )
+      ) : (
+        <AllDeals
+          downgraded={downgraded}
+          categories={categories}
+          category={category}
+          onCategory={setCategory}
+          deals={visiblePublic}
+          onResubscribe={() => navigate("/paywall")}
+        />
+      )}
     </div>
   );
 }
@@ -313,7 +308,7 @@ function ForYou({ tier, navigate }: { tier: string; navigate: (to: string) => vo
           No offers match these filters.
         </p>
       ) : (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 items-start gap-3 md:grid-cols-2 lg:grid-cols-3">
           {groups.map(({ brand, items }, gi) => {
             const brandSavings = items.reduce((s, r) => s + r.deal.savingsAmount, 0);
             const lead = items[0].deal;
@@ -589,7 +584,7 @@ function AllDeals({
         <CategoryChips categories={categories} active={category} onChange={onCategory} />
       </div>
 
-      <div className="space-y-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {deals.map((deal) => (
           <DealCard key={deal.id} deal={deal} />
         ))}

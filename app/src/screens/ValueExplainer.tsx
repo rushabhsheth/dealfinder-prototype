@@ -47,19 +47,9 @@ export default function ValueExplainer() {
   const atEnd = i === PANELS.length - 1;
 
   return (
-    <div className="flex h-full flex-col bg-surface px-6 pb-8 pt-6">
-      {/* App wordmark */}
-      <div className="flex items-center justify-center gap-2">
-        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-white">
-          <Sparkles size={16} strokeWidth={2.25} />
-        </span>
-        <span className="text-h2 font-bold tracking-tight text-ink">
-          Deal<span className="text-primary">Finder</span>
-        </span>
-      </div>
-
+    <div className="pb-8 pt-6">
       {/* Panel with arrow navigation */}
-      <div className="flex flex-1 items-center gap-1">
+      <div className="flex items-center gap-1">
         <ArrowButton dir="left" disabled={atStart} onClick={() => setI(i - 1)} />
         <div
           key={i}

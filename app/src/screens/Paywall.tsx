@@ -34,8 +34,8 @@ export default function Paywall() {
   }
 
   return (
-    <div className="flex h-full flex-col bg-surface">
-      <div className="no-scrollbar flex-1 overflow-y-auto px-5 pb-28 pt-8">
+    <div>
+      <div className="pt-2">
         {/* Recap hero */}
         <div className="rounded-card bg-gradient-to-b from-accent to-accent-pressed p-6 text-center text-white shadow-card">
           <p className="text-label font-semibold uppercase tracking-wide text-white/80">
@@ -82,19 +82,19 @@ export default function Paywall() {
           <ShieldCheck size={14} className="text-primary" /> Cancel anytime. Disconnect your inbox in
           one tap.
         </p>
-      </div>
 
-      {/* Sticky CTA */}
-      <div className="absolute bottom-0 left-0 right-0 z-20 border-t border-hairline bg-card/95 px-4 pb-6 pt-3 backdrop-blur">
-        <PrimaryButton variant="accent" onClick={subscribe}>
-          Subscribe · {usd(trial.annualPrice)}/yr
-        </PrimaryButton>
-        <button
-          onClick={maybeLater}
-          className="mt-1.5 w-full py-1.5 text-label font-semibold text-ink-muted"
-        >
-          Maybe later
-        </button>
+        {/* CTA */}
+        <div className="mt-6">
+          <PrimaryButton variant="accent" onClick={subscribe}>
+            Subscribe · {usd(trial.annualPrice)}/yr
+          </PrimaryButton>
+          <button
+            onClick={maybeLater}
+            className="mt-1.5 w-full py-1.5 text-label font-semibold text-ink-muted"
+          >
+            Maybe later
+          </button>
+        </div>
       </div>
     </div>
   );

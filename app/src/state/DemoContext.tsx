@@ -12,6 +12,7 @@ import { DEFAULT_PREFERENCES } from "../lib/preferences";
 import {
   backendEnabled,
   getEntitlement,
+  hasActiveInbox,
   startTrial,
   subscribePlan,
   cancelPlan,
@@ -26,6 +27,13 @@ import {
 interface DemoState {
   tier: Tier;
   setTier: (t: Tier) => void;
+  /** Whether the user is authenticated. Modeled separately from `tier` so the
+   *  responsive shell, nav, and route gates can key off one source of truth for
+   *  the four auth states (anonymous / auth-free / auth-trial / auth-paid /
+   *  downgraded-free). In backend mode this is reconciled from the Supabase
+   *  session; in demo mode the DemoMenu toggles it. */
+  signedIn: boolean;
+  setSignedIn: (v: boolean) => void;
   /** True once a trial has lapsed without conversion — drives the downgrade UI. */
   downgraded: boolean;
   redeemedIds: string[];
@@ -47,6 +55,10 @@ interface DemoState {
    *  Privacy via the Connect Inbox screen. */
   inboxConnected: boolean;
   setInboxConnected: (connected: boolean) => void;
+  /** Reconcile tier + inbox-connection from the backend (entitlement +
+   *  connections). Returns whether the user has an active inbox, so sign-in can
+   *  route returning users straight to their feed. No-op in demo mode. */
+  syncFromServer: () => Promise<{ signedIn: boolean; connected: boolean }>;
   /** Convert/restart premium: trial or paid, clears the downgrade flag. In
    *  backend mode this also persists the entitlement server-side; await it when
    *  ordering matters (e.g. start trial before a gated scan). */
@@ -66,6 +78,7 @@ const DemoContext = createContext<DemoState | null>(null);
 
 interface Persisted {
   tier: Tier;
+  signedIn: boolean;
   downgraded: boolean;
   redeemedIds: string[];
   interest: Record<string, DealInterest>;
@@ -77,6 +90,9 @@ interface Persisted {
 function load(): Persisted {
   const defaults: Persisted = {
     tier: "trial",
+    // Default signed-in so existing demo flows still land on /feed; the DemoMenu
+    // toggles signed-out to walk the anonymous/marketing surfaces.
+    signedIn: true,
     downgraded: false,
     redeemedIds: [],
     interest: {},
@@ -96,6 +112,7 @@ function load(): Persisted {
 export function DemoProvider({ children }: { children: ReactNode }) {
   const initial = load();
   const [tier, setTierState] = useState<Tier>(initial.tier);
+  const [signedIn, setSignedIn] = useState<boolean>(initial.signedIn);
   const [downgraded, setDowngraded] = useState<boolean>(initial.downgraded);
   const [redeemedIds, setRedeemedIds] = useState<string[]>(initial.redeemedIds);
   const [interest, setInterestState] = useState<Record<string, DealInterest>>(initial.interest);
@@ -113,6 +130,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
         STORAGE_KEY,
         JSON.stringify({
           tier,
+          signedIn,
           downgraded,
           redeemedIds,
           interest,
@@ -124,29 +142,36 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     } catch {
       // ignore quota / private-mode errors
     }
-  }, [tier, downgraded, redeemedIds, interest, preferences, brandStatus, inboxConnected]);
+  }, [tier, signedIn, downgraded, redeemedIds, interest, preferences, brandStatus, inboxConnected]);
 
   const setTier = useCallback((t: Tier) => setTierState(t), []);
 
-  // On startup in backend mode, the server's entitlement is the source of truth
-  // (lazy trial-expiry lives there). Reconcile the local tier with it; if the
-  // user isn't signed in yet, getEntitlement 401s and we keep the local value.
-  useEffect(() => {
-    if (!backendEnabled) return;
-    let active = true;
-    getEntitlement()
-      .then(({ entitlement }) => {
-        if (!active) return;
-        setTierState(entitlement.tier);
-        setDowngraded(entitlement.downgraded);
-      })
-      .catch(() => {
-        /* not signed in / offline — keep local demo state */
-      });
-    return () => {
-      active = false;
-    };
+  // Reconcile local state with the backend: the server's entitlement is the
+  // source of truth (lazy trial-expiry lives there), and the connections list
+  // tells us whether the inbox is already connected. Used on startup and again
+  // right after sign-in so returning users land on their real feed.
+  const syncFromServer = useCallback(async () => {
+    if (!backendEnabled) return { signedIn: true, connected: true };
+    try {
+      const [{ entitlement }, connected] = await Promise.all([
+        getEntitlement(),
+        hasActiveInbox(),
+      ]);
+      setSignedIn(true);
+      setTierState(entitlement.tier);
+      setDowngraded(entitlement.downgraded);
+      setInboxConnected(connected);
+      return { signedIn: true, connected };
+    } catch {
+      // Not signed in / offline — keep local demo state.
+      setSignedIn(false);
+      return { signedIn: false, connected: false };
+    }
   }, []);
+
+  useEffect(() => {
+    void syncFromServer();
+  }, [syncFromServer]);
 
   const goPremium = useCallback(async (t: "trial" | "paid") => {
     setTierState(t); // optimistic
@@ -212,6 +237,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
 
   const reset = useCallback(() => {
     setTierState("trial");
+    setSignedIn(true);
     setDowngraded(false);
     setRedeemedIds([]);
     setInterestState({});
@@ -224,6 +250,8 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     () => ({
       tier,
       setTier,
+      signedIn,
+      setSignedIn,
       downgraded,
       redeemedIds,
       redeem,
@@ -237,6 +265,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
       setBrandStatus,
       inboxConnected,
       setInboxConnected,
+      syncFromServer,
       goPremium,
       downgrade,
       nudgeDismissed,
@@ -246,6 +275,8 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     [
       tier,
       setTier,
+      signedIn,
+      setSignedIn,
       downgraded,
       redeemedIds,
       redeem,
@@ -259,6 +290,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
       setBrandStatus,
       inboxConnected,
       setInboxConnected,
+      syncFromServer,
       goPremium,
       downgrade,
       nudgeDismissed,

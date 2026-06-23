@@ -10,7 +10,7 @@ export default function Subscribed() {
   const { trial } = savings;
 
   return (
-    <div className="flex h-full flex-col items-center justify-center bg-surface px-6 text-center">
+    <div className="flex flex-col items-center text-center">
       <div className="relative flex h-24 w-24 items-center justify-center">
         <span className="animate-pulse-ring absolute inset-0 rounded-full bg-savings/30" />
         <span className="flex h-20 w-20 items-center justify-center rounded-full bg-savings text-white">

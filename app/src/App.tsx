@@ -1,8 +1,10 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import PhoneFrame from "./components/PhoneFrame";
 import { ToastProvider } from "./components/Toast";
 import DemoMenu from "./components/DemoMenu";
+import AppShell from "./components/AppShell";
+import { useDemo } from "./state/DemoContext";
 
+import Landing from "./screens/Landing";
 import ValueExplainer from "./screens/ValueExplainer";
 import Feed from "./screens/Feed";
 import TrialIntro from "./screens/TrialIntro";
@@ -23,17 +25,28 @@ import Settings from "./screens/Settings";
 import Privacy from "./screens/Privacy";
 import EnrolledBrands from "./screens/EnrolledBrands";
 
+/**
+ * Front door at `/`: signed-out users see the trust-first marketing landing;
+ * signed-in users are sent straight to their feed (the Going pattern). The
+ * swipe-panel ValueExplainer is now the mobile on-ramp, reachable at `/intro`.
+ */
+function Root() {
+  const { signedIn } = useDemo();
+  return signedIn ? <Navigate to="/feed" replace /> : <Landing />;
+}
+
 export default function App() {
   return (
-    <PhoneFrame>
-      <ToastProvider>
-        <Routes>
-          {/* Onboarding & free path */}
-          <Route path="/" element={<ValueExplainer />} />
+    <ToastProvider>
+      <Routes>
+        {/* Every route renders inside the responsive AppShell (no more PhoneFrame). */}
+        <Route element={<AppShell />}>
+          <Route path="/" element={<Root />} />
+          <Route path="/intro" element={<ValueExplainer />} />
           <Route path="/free" element={<Navigate to="/feed" replace />} />
           <Route path="/trial" element={<TrialIntro />} />
-          {/* Standalone connect / enroll — not in the chat onboarding, kept for
-              connecting later from Settings → Privacy. */}
+
+          {/* Standalone connect / enroll */}
           <Route path="/connect" element={<ConnectEmail />} />
           <Route path="/connect/callback" element={<ConnectCallback />} />
           <Route path="/signin" element={<SignIn />} />
@@ -59,9 +72,9 @@ export default function App() {
           <Route path="/privacy" element={<Privacy />} />
 
           <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-        <DemoMenu />
-      </ToastProvider>
-    </PhoneFrame>
+        </Route>
+      </Routes>
+      <DemoMenu />
+    </ToastProvider>
   );
 }

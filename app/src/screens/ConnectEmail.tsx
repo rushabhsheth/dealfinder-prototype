@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Check, X, Lock, Trash2, Eye } from "lucide-react";
+import { Check, X, Lock, Trash2, Eye, ArrowLeft } from "lucide-react";
 import { useDemo } from "../state/DemoContext";
 import { useToast } from "../components/Toast";
 import { backendEnabled, isSignedIn, startGoogleConnect } from "../lib/api";
-import TopBar from "../components/TopBar";
 import PrimaryButton from "../components/PrimaryButton";
 
 /**
@@ -65,10 +64,16 @@ export default function ConnectEmail() {
   }
 
   return (
-    <div className="flex h-full flex-col bg-surface">
-      <TopBar back title="Connect inbox" />
+    <div className="pt-2">
+      <button
+        onClick={() => navigate(-1)}
+        className="mb-4 inline-flex items-center gap-1.5 text-label font-semibold text-ink-muted hover:text-ink"
+      >
+        <ArrowLeft size={16} /> Back
+      </button>
+      <h1 className="mb-4 text-h2 font-bold text-ink">Connect inbox</h1>
 
-      <div className="no-scrollbar flex-1 overflow-y-auto px-5 pb-28 pt-2">
+      <div>
         <div className="flex items-center gap-2 rounded-card bg-primary-tint/60 p-3">
           <Lock size={18} className="shrink-0 text-primary" />
           <p className="text-caption text-ink">
@@ -91,7 +96,7 @@ export default function ConnectEmail() {
         </div>
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 z-20 border-t border-hairline bg-card/95 px-4 pb-6 pt-3 backdrop-blur">
+      <div className="mt-6 border-t border-hairline pt-4">
         {connecting ? (
           <div className="flex h-12 items-center justify-center gap-2 rounded-button bg-primary/10 text-label font-semibold text-primary">
             <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />

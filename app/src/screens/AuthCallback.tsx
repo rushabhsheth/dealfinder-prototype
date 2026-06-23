@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { AlertCircle } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { takeAuthNext } from "../lib/api";
-import TopBar from "../components/TopBar";
+import { useDemo } from "../state/DemoContext";
 import PrimaryButton from "../components/PrimaryButton";
 
 /**
@@ -14,6 +14,7 @@ import PrimaryButton from "../components/PrimaryButton";
  */
 export default function AuthCallback() {
   const navigate = useNavigate();
+  const { syncFromServer } = useDemo();
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -29,10 +30,15 @@ export default function AuthCallback() {
     }
 
     let done = false;
-    const proceed = () => {
+    const proceed = async () => {
       if (done) return;
       done = true;
-      navigate(takeAuthNext() ?? "/feed", { replace: true });
+      // Returning users (already have a connected inbox) skip the connect+scan
+      // onboarding and land on their feed; everyone else continues where they
+      // were headed (e.g. a new user mid-connect).
+      const next = takeAuthNext();
+      const { connected } = await syncFromServer();
+      navigate(connected ? "/feed" : (next ?? "/feed"), { replace: true });
     };
 
     supabase.auth.getSession().then(({ data }) => {
@@ -49,12 +55,11 @@ export default function AuthCallback() {
       sub.subscription.unsubscribe();
       clearTimeout(timer);
     };
-  }, [navigate]);
+  }, [navigate, syncFromServer]);
 
   return (
-    <div className="flex h-full flex-col bg-surface">
-      <TopBar title="Signing in" />
-      <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
+    <div className="py-10">
+      <div className="flex flex-col items-center text-center">
         {error ? (
           <>
             <AlertCircle size={48} className="text-accent-pressed" />

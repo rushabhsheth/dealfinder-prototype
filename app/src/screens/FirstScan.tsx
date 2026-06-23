@@ -40,8 +40,8 @@ export default function FirstScan() {
   // the user can jump ahead before the scan fully finishes).
   const scanResult = useRef<{ foundTotal: number; offersFound: number; messagesScanned: number } | null>(null);
 
-  const seeDealsNow = () =>
-    navigate("/summary", { state: { scan: scanResult.current } });
+  // Skip the savings-summary interstitial — drop straight into the deals feed.
+  const seeDealsNow = () => navigate("/feed");
 
   // ── Drive the scan (real or mocked) ────────────────────────────────────────
   useEffect(() => {
@@ -119,10 +119,8 @@ export default function FirstScan() {
   useEffect(() => {
     setStep(Math.min(STEPS.length - 1, Math.floor(progress * STEPS.length)));
     if (status === "done" && progress >= 0.999) {
-      const t = setTimeout(
-        () => navigate("/summary", { state: { scan: scanResult.current } }),
-        450,
-      );
+      // Straight into the deals feed — no savings-summary interstitial.
+      const t = setTimeout(() => navigate("/feed"), 450);
       return () => clearTimeout(t);
     }
   }, [progress, status, navigate]);
@@ -134,7 +132,7 @@ export default function FirstScan() {
 
   if (status === "error") {
     return (
-      <div className="flex h-full flex-col items-center justify-center bg-surface px-8 text-center">
+      <div className="flex flex-col items-center text-center">
         <span className="flex h-16 w-16 items-center justify-center rounded-full bg-urgency-tint text-accent-pressed">
           <AlertCircle size={32} />
         </span>
@@ -157,7 +155,7 @@ export default function FirstScan() {
   }
 
   return (
-    <div className="flex h-full flex-col items-center justify-center bg-surface px-8 text-center">
+    <div className="flex flex-col items-center text-center">
       {/* Pulsing scanner */}
       <div className="relative flex h-32 w-32 items-center justify-center">
         <span className="animate-pulse-ring absolute inset-0 rounded-full bg-primary/20" />

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Check, ArrowRight } from "lucide-react";
-import TopBar from "../components/TopBar";
+import { Check, ArrowRight, ArrowLeft } from "lucide-react";
 import PrimaryButton from "../components/PrimaryButton";
 
 /**
@@ -24,10 +23,17 @@ export default function EnrollmentConsent() {
   const [enabled, setEnabled] = useState(true);
 
   return (
-    <div className="flex h-full flex-col bg-surface">
-      <TopBar back title="Auto-enroll" />
+    <div>
+      <button
+        onClick={() => navigate(-1)}
+        className="mb-4 inline-flex items-center gap-1.5 text-label font-semibold text-ink-muted hover:text-ink"
+      >
+        <ArrowLeft size={16} /> Back
+      </button>
 
-      <div className="no-scrollbar flex-1 overflow-y-auto px-5 pb-28 pt-2">
+      <h1 className="text-h1 text-ink">Auto-enroll</h1>
+
+      <div className="pt-4">
         <p className="text-body text-ink">
           Some of the best deals only go to subscribers. With your OK, we'll join high-value
           newsletters on your behalf and pull the offers into your feed.
@@ -80,19 +86,19 @@ export default function EnrollmentConsent() {
           <Check size={14} className="text-savings" /> You stay in control — manage every brand in
           Enrolled Brands.
         </p>
-      </div>
 
-      <div className="absolute bottom-0 left-0 right-0 z-20 border-t border-hairline bg-card/95 px-4 pb-6 pt-3 backdrop-blur">
-        <PrimaryButton onClick={() => navigate(next)}>
-          {connectFlow
-            ? enabled
-              ? "Enroll & finish"
-              : "Done"
-            : enabled
-            ? "Enroll & start scan"
-            : "Continue without enrolling"}{" "}
-          <ArrowRight size={18} />
-        </PrimaryButton>
+        <div className="mt-6">
+          <PrimaryButton onClick={() => navigate(next)}>
+            {connectFlow
+              ? enabled
+                ? "Enroll & finish"
+                : "Done"
+              : enabled
+              ? "Enroll & start scan"
+              : "Continue without enrolling"}{" "}
+            <ArrowRight size={18} />
+          </PrimaryButton>
+        </div>
       </div>
     </div>
   );

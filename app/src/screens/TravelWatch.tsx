@@ -4,8 +4,7 @@ import { Plane, Bell, TrendingDown, Plus, ArrowRight } from "lucide-react";
 import { watches as seedWatches } from "../lib/data";
 import { usd } from "../lib/format";
 import type { Watch } from "../types";
-import BottomNav from "../components/BottomNav";
-import TopAppBar from "../components/TopAppBar";
+import ScreenHeader from "../components/ScreenHeader";
 
 /**
  * Screen 11 — Travel Watch (premium). Set a route/price watch; one seeded
@@ -40,14 +39,14 @@ export default function TravelWatch() {
   }
 
   return (
-    <div className="flex h-full flex-col">
-      <TopAppBar title="Flight Fare Deals">
+    <div>
+      <ScreenHeader title="Flight Fare Deals">
         <p className="text-caption text-ink-muted">
           We'll only ping you when a fare drops below your target.
         </p>
-      </TopAppBar>
+      </ScreenHeader>
 
-      <div className="no-scrollbar flex-1 overflow-y-auto px-4 pb-6">
+      <div>
         {/* New watch */}
         <div className="rounded-card border border-hairline bg-card p-4 shadow-card">
           <p className="mb-2.5 text-label font-semibold uppercase tracking-wide text-ink-muted">
@@ -78,14 +77,12 @@ export default function TravelWatch() {
         </div>
 
         {/* Active watches */}
-        <div className="mt-4 space-y-3">
+        <div className="mt-4 grid grid-cols-1 items-start gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {watches.map((w) => (
             <WatchCard key={w.id} watch={w} onOpen={() => w.linkedDealId && navigate(`/deal/${w.linkedDealId}`)} />
           ))}
         </div>
       </div>
-
-      <BottomNav />
     </div>
   );
 }

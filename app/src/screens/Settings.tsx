@@ -4,7 +4,7 @@ import { Bell, ShieldCheck, CreditCard } from "lucide-react";
 import { savings } from "../lib/data";
 import { useDemo } from "../state/DemoContext";
 import { useToast } from "../components/Toast";
-import TopBar from "../components/TopBar";
+import ScreenHeader from "../components/ScreenHeader";
 import { Group, Row, Toggle } from "../components/SettingsList";
 import ChipGroup from "../components/ChipGroup";
 import SegmentedControl from "../components/SegmentedControl";
@@ -40,10 +40,10 @@ export default function Settings() {
   };
 
   return (
-    <div className="flex h-full flex-col bg-surface">
-      <TopBar back title="Settings" />
+    <div className="mx-auto w-full max-w-2xl">
+      <ScreenHeader title="Settings" />
 
-      <div className="no-scrollbar flex-1 overflow-y-auto px-4 pb-8 pt-2">
+      <div>
         {/* Subscription */}
         <Group title="Subscription">
           <Row Icon={CreditCard} title="Plan" subtitle={statusLabel}>

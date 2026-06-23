@@ -16,7 +16,7 @@ import { useAsync } from "../lib/useAsync";
 import { usd, shortDate } from "../lib/format";
 import { useDemo } from "../state/DemoContext";
 import { useToast } from "../components/Toast";
-import TopBar from "../components/TopBar";
+import ScreenHeader from "../components/ScreenHeader";
 import BrandMark from "../components/BrandMark";
 import PrimaryButton from "../components/PrimaryButton";
 import ScreenState from "../components/ScreenState";
@@ -96,8 +96,8 @@ export default function EnrolledBrands() {
 
   if (loading) {
     return (
-      <div className="flex h-full flex-col bg-surface">
-        <TopBar back title="Enrolled brands" />
+      <div>
+        <ScreenHeader title="Enrolled brands" />
         <ScreenState variant="loading" message="Loading your brands…" />
       </div>
     );
@@ -105,8 +105,8 @@ export default function EnrolledBrands() {
 
   if (error) {
     return (
-      <div className="flex h-full flex-col bg-surface">
-        <TopBar back title="Enrolled brands" />
+      <div>
+        <ScreenHeader title="Enrolled brands" />
         <ScreenState variant="error" message={error} onRetry={reload} />
       </div>
     );
@@ -114,8 +114,8 @@ export default function EnrolledBrands() {
 
   if (allBrands.length === 0) {
     return (
-      <div className="flex h-full flex-col bg-surface">
-        <TopBar back title="Enrolled brands" />
+      <div>
+        <ScreenHeader title="Enrolled brands" />
         <ScreenState
           variant="empty"
           title="No brands yet"
@@ -126,10 +126,10 @@ export default function EnrolledBrands() {
   }
 
   return (
-    <div className="flex h-full flex-col bg-surface">
-      <TopBar back title="Enrolled brands" />
+    <div>
+      <ScreenHeader title="Enrolled brands" />
 
-      <div className="no-scrollbar flex-1 overflow-y-auto px-4 pb-8 pt-1">
+      <div>
         {/* Summary strip */}
         <div className="flex items-stretch rounded-card border border-hairline bg-card px-2 py-3 shadow-card">
           <Stat value={String(summary.brands)} label="brands" />
@@ -175,17 +175,17 @@ export default function EnrolledBrands() {
         </div>
 
         {/* List */}
-        <div className="mt-3 space-y-2.5">
-          {rows.length === 0 ? (
-            <p className="px-1 py-8 text-center text-caption text-ink-muted">
-              No brands match this filter.
-            </p>
-          ) : (
-            rows.map((b) => (
+        {rows.length === 0 ? (
+          <p className="mt-3 px-1 py-8 text-center text-caption text-ink-muted">
+            No brands match this filter.
+          </p>
+        ) : (
+          <div className="mt-3 grid grid-cols-1 items-start gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+            {rows.map((b) => (
               <BrandRow key={b.id} brand={b} status={statusOf(b)} onOpen={() => setOpenId(b.id)} />
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+        )}
 
         <p className="mt-5 flex items-center justify-center gap-1.5 px-6 text-center text-caption text-ink-muted">
           <ShieldCheck size={14} className="text-primary" /> We never rank by payout. You control
@@ -370,10 +370,10 @@ function BrandSheet({
   };
 
   return (
-    <div className="absolute inset-0 z-40 flex flex-col justify-end">
+    <div className="fixed inset-0 z-50 flex flex-col justify-end sm:items-center sm:justify-center sm:p-6">
       <button aria-label="Close" onClick={onClose} className="absolute inset-0 bg-ink/40" />
 
-      <div className="animate-fade-up relative z-10 max-h-[88%] overflow-y-auto rounded-t-card bg-card pb-7 shadow-2xl">
+      <div className="animate-fade-up relative z-10 max-h-[88%] w-full overflow-y-auto rounded-t-card bg-card pb-7 shadow-2xl sm:max-w-lg sm:rounded-card">
         {/* Header */}
         <div className="sticky top-0 flex items-center gap-3 border-b border-hairline bg-card px-4 py-3.5">
           <BrandMark initials={brand.brandInitials} category={brand.category} size={40} />
@@ -530,9 +530,9 @@ function ActionButton({
 function LockedState({ downgraded }: { downgraded: boolean }) {
   const navigate = useNavigate();
   return (
-    <div className="flex h-full flex-col bg-surface">
-      <TopBar back title="Enrolled brands" />
-      <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
+    <div>
+      <ScreenHeader title="Enrolled brands" />
+      <div className="mx-auto flex max-w-sm flex-col items-center px-2 pt-8 text-center">
         <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-tint">
           <Lock size={26} className="text-primary" />
         </span>

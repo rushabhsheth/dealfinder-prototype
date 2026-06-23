@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Mail, PauseCircle, Store, Trash2, ShieldCheck, ChevronRight } from "lucide-react";
 import { useDemo } from "../state/DemoContext";
 import { useToast } from "../components/Toast";
-import TopBar from "../components/TopBar";
+import ScreenHeader from "../components/ScreenHeader";
 import { Group, Row, Toggle } from "../components/SettingsList";
 
 /**
@@ -19,10 +19,10 @@ export default function Privacy() {
   const [scanning, setScanning] = useState(inboxConnected);
 
   return (
-    <div className="flex h-full flex-col bg-surface">
-      <TopBar back title="Privacy" />
+    <div className="mx-auto w-full max-w-2xl">
+      <ScreenHeader title="Privacy" />
 
-      <div className="no-scrollbar flex-1 overflow-y-auto px-4 pb-8 pt-2">
+      <div>
         {/* Inbox */}
         <Group title="Inbox">
           <Row

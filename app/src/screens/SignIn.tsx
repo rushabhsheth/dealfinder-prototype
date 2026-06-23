@@ -1,9 +1,8 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Lock } from "lucide-react";
+import { Lock, ArrowLeft } from "lucide-react";
 import { signIn, signUp, signInWithGoogle, ApiError } from "../lib/api";
 import { supabaseAuthEnabled } from "../lib/supabase";
-import TopBar from "../components/TopBar";
 import PrimaryButton from "../components/PrimaryButton";
 
 /**
@@ -58,10 +57,18 @@ export default function SignIn() {
   }
 
   return (
-    <div className="flex h-full flex-col bg-surface">
-      <TopBar back title={mode === "signin" ? "Sign in" : "Create account"} />
+    <div className="pt-2">
+      <button
+        onClick={() => navigate(-1)}
+        className="mb-4 inline-flex items-center gap-1.5 text-label font-semibold text-ink-muted hover:text-ink"
+      >
+        <ArrowLeft size={16} /> Back
+      </button>
+      <h1 className="mb-4 text-h2 font-bold text-ink">
+        {mode === "signin" ? "Sign in" : "Create account"}
+      </h1>
 
-      <div className="flex-1 overflow-y-auto px-5 pb-28 pt-3">
+      <div>
         <div className="flex items-center gap-2 rounded-card bg-primary-tint/60 p-3">
           <Lock size={18} className="shrink-0 text-primary" />
           <p className="text-caption text-ink">

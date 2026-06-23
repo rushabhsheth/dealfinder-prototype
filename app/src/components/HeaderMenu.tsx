@@ -1,42 +1,63 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { createPortal } from "react-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   Menu,
   X,
+  Home,
+  Plane,
+  PiggyBank,
+  Sparkles,
   Settings as SettingsIcon,
   ShieldCheck,
   Lock,
   Store,
-  ChevronRight,
-  Sparkles,
   LogOut,
+  ArrowRight,
   type LucideIcon,
 } from "lucide-react";
 import { useDemo } from "../state/DemoContext";
 import { useToast } from "./Toast";
 import { signOut as apiSignOut } from "../lib/api";
+import TierBadge from "./TierBadge";
 
 /**
- * HeaderMenu — the top-left hamburger on the main tab screens. Opens a
- * slide-over with plan status and the periodic trust/control surfaces:
- * Enrolled Brands, Settings, and Privacy (kept separate so the "delete my
- * data" intent isn't mixed in with settings).
+ * HeaderMenu — the mobile drawer (RESPONSIVE_WEB_PRD.md §5). Opened from the
+ * mobile app bar's hamburger. Carries a tier-aware header plus the primary
+ * destinations (the mobile analog of the desktop TopNav + account dropdown) and
+ * the trust/control surfaces. Contents are auth-driven: signed-in shows the
+ * account + Sign out; signed-out shows Log in / Start free trial.
  */
+const PRIMARY: { label: string; to: string; Icon: LucideIcon }[] = [
+  { label: "Deals", to: "/feed", Icon: Home },
+  { label: "Travel watches", to: "/watches", Icon: Plane },
+  { label: "Savings", to: "/savings", Icon: PiggyBank },
+  { label: "Scout assistant", to: "/chat", Icon: Sparkles },
+];
+
+const SECONDARY: { label: string; to: string; Icon: LucideIcon }[] = [
+  { label: "Enrolled brands", to: "/brands", Icon: Store },
+  { label: "Settings", to: "/settings", Icon: SettingsIcon },
+  { label: "Privacy", to: "/privacy", Icon: Lock },
+];
+
 export default function HeaderMenu() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
-  const { tier, reset } = useDemo();
+  const { signedIn, setSignedIn, reset } = useDemo();
   const toast = useToast();
 
-  const planLabel =
-    tier === "paid" ? "Premium · annual" : tier === "trial" ? "Free trial" : "Free";
+  const close = () => setOpen(false);
+  const go = (to: string) => {
+    close();
+    navigate(to);
+  };
 
-  // Clears the real Supabase session (no-op in demo mode) plus demo state, then
-  // returns to the front-door screen.
   const signOut = () => {
-    setOpen(false);
+    close();
     void apiSignOut();
     reset();
+    setSignedIn(false);
     navigate("/");
     toast.show("Signed out");
   };
@@ -51,69 +72,47 @@ export default function HeaderMenu() {
         <Menu size={24} />
       </button>
 
-      {open && (
-        <div className="absolute inset-0 z-40 flex justify-start">
-          {/* Scrim */}
-          <button
-            aria-label="Close menu"
-            onClick={() => setOpen(false)}
-            className="absolute inset-0 bg-ink/40"
-          />
+      {open &&
+        createPortal(
+          <div className="fixed inset-0 z-50 flex justify-start">
+            <button aria-label="Close menu" onClick={close} className="absolute inset-0 bg-ink/40" />
 
           {/* Panel — slides in from the left (hamburger lives top-left) */}
           <div className="animate-slide-in-left relative z-10 flex h-full w-72 max-w-[82%] flex-col bg-card shadow-2xl">
             <div className="flex items-center justify-between border-b border-hairline px-4 py-4">
-              <span className="text-h2 text-ink">Menu</span>
+              {signedIn ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-h2 text-ink">You</span>
+                  <TierBadge />
+                </div>
+              ) : (
+                <span className="text-h2 text-ink">Welcome</span>
+              )}
               <button
                 aria-label="Close"
-                onClick={() => setOpen(false)}
+                onClick={close}
                 className="flex h-9 w-9 items-center justify-center rounded-full text-ink-muted active:bg-black/5"
               >
                 <X size={20} />
               </button>
             </div>
 
-            {/* Plan status */}
-            <div className="px-4 pt-4">
-              <div className="flex items-center gap-2.5 rounded-card bg-primary-tint/50 px-3.5 py-3">
-                <Sparkles size={18} className="shrink-0 text-primary" />
-                <div>
-                  <p className="text-caption text-ink-muted">Your plan</p>
-                  <p className="text-label font-semibold text-ink">{planLabel}</p>
-                </div>
-              </div>
+            <div className="no-scrollbar flex-1 overflow-y-auto px-2 py-2">
+              <nav>
+                {PRIMARY.map(({ label, to, Icon }) => (
+                  <DrawerLink key={to} to={to} label={label} Icon={Icon} onClick={close} />
+                ))}
+              </nav>
+              <div className="my-2 border-t border-hairline" />
+              <nav>
+                {SECONDARY.map(({ label, to, Icon }) => (
+                  <DrawerLink key={to} to={to} label={label} Icon={Icon} onClick={close} />
+                ))}
+              </nav>
             </div>
 
-            {/* Items */}
-            <nav className="mt-2 px-2">
-              <Item
-                Icon={Store}
-                label="Enrolled brands"
-                onClick={() => {
-                  setOpen(false);
-                  navigate("/brands");
-                }}
-              />
-              <Item
-                Icon={SettingsIcon}
-                label="Settings"
-                onClick={() => {
-                  setOpen(false);
-                  navigate("/settings");
-                }}
-              />
-              <Item
-                Icon={Lock}
-                label="Privacy"
-                onClick={() => {
-                  setOpen(false);
-                  navigate("/privacy");
-                }}
-              />
-            </nav>
-
-            <div className="mt-auto">
-              <div className="border-t border-hairline px-2 pt-2">
+            <div className="border-t border-hairline px-2 pt-2">
+              {signedIn ? (
                 <button
                   onClick={signOut}
                   className="flex w-full items-center gap-3 rounded-button px-3 py-3.5 text-left active:bg-surface"
@@ -121,36 +120,58 @@ export default function HeaderMenu() {
                   <LogOut size={20} className="text-ink-muted" />
                   <span className="flex-1 text-body font-semibold text-ink">Sign out</span>
                 </button>
-              </div>
+              ) : (
+                <div className="space-y-2 px-1 pb-1">
+                  <button
+                    onClick={() => go("/trial")}
+                    className="flex w-full items-center justify-center gap-2 rounded-button bg-accent py-3 text-label font-semibold text-white"
+                  >
+                    Start free trial <ArrowRight size={16} />
+                  </button>
+                  <button
+                    onClick={() => go("/signin")}
+                    className="w-full rounded-button border border-hairline py-3 text-label font-semibold text-ink"
+                  >
+                    Log in
+                  </button>
+                </div>
+              )}
               <p className="flex items-center gap-1.5 px-4 pb-8 pt-2 text-caption text-ink-muted">
                 <ShieldCheck size={14} className="shrink-0 text-primary" /> Read-only access ·
                 payout-blind ranking
               </p>
             </div>
           </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </>
   );
 }
 
-function Item({
-  Icon,
+function DrawerLink({
+  to,
   label,
+  Icon,
   onClick,
 }: {
-  Icon: LucideIcon;
+  to: string;
   label: string;
+  Icon: LucideIcon;
   onClick: () => void;
 }) {
   return (
-    <button
+    <NavLink
+      to={to}
       onClick={onClick}
-      className="flex w-full items-center gap-3 rounded-button px-3 py-3.5 text-left active:bg-surface"
+      className={({ isActive }) =>
+        `flex items-center gap-3 rounded-button px-3 py-3 text-left transition-colors ${
+          isActive ? "bg-primary-tint/50 text-primary-pressed" : "text-ink active:bg-surface"
+        }`
+      }
     >
       <Icon size={20} className="text-ink-muted" />
-      <span className="flex-1 text-body font-semibold text-ink">{label}</span>
-      <ChevronRight size={18} className="text-ink-muted" />
-    </button>
+      <span className="flex-1 text-body font-semibold">{label}</span>
+    </NavLink>
   );
 }

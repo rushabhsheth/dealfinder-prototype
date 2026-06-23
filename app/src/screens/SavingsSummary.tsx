@@ -23,15 +23,11 @@ export default function SavingsSummary() {
   const { data, loading, error, reload } = useAsync<ScanSummaryView>(fetcher);
 
   return (
-    <div className="flex h-full flex-col">
+    <div>
       {loading ? (
-        <div className="flex flex-1 items-center justify-center">
-          <ScreenState variant="loading" message="Tallying what we found…" />
-        </div>
+        <ScreenState variant="loading" message="Tallying what we found…" />
       ) : error ? (
-        <div className="flex flex-1 items-center justify-center">
-          <ScreenState variant="error" message={error} onRetry={reload} />
-        </div>
+        <ScreenState variant="error" message={error} onRetry={reload} />
       ) : data ? (
         <Reveal data={data} onSeeFeed={() => navigate("/feed")} />
       ) : null}
@@ -51,7 +47,7 @@ function Reveal({ data, onSeeFeed }: { data: ScanSummaryView; onSeeFeed: () => v
   return (
     <>
       {/* Apricot hero — a spotlight moment */}
-      <div className="shrink-0 bg-gradient-to-b from-accent-tint to-surface px-6 pb-6 pt-10 text-center">
+      <div className="rounded-card bg-gradient-to-b from-accent-tint to-surface px-6 pb-6 pt-10 text-center">
         <span className="inline-flex items-center gap-1.5 rounded-badge bg-card px-3 py-1 text-label font-semibold text-accent-pressed shadow-card">
           <Sparkles size={14} /> Your first scan is done
         </span>
@@ -90,7 +86,7 @@ function Reveal({ data, onSeeFeed }: { data: ScanSummaryView; onSeeFeed: () => v
       </div>
 
       {/* Top 3 highlights */}
-      <div className="no-scrollbar flex-1 overflow-y-auto px-4 pb-28 pt-4">
+      <div className="pt-4">
         {data.topDeals.length > 0 && (
           <>
             <p className="mb-2 text-caption font-semibold uppercase tracking-wide text-ink-muted">
@@ -109,8 +105,8 @@ function Reveal({ data, onSeeFeed }: { data: ScanSummaryView; onSeeFeed: () => v
         </p>
       </div>
 
-      {/* Sticky CTA */}
-      <div className="absolute bottom-0 left-0 right-0 z-20 border-t border-hairline bg-card/95 px-4 pb-6 pt-3 backdrop-blur">
+      {/* CTA */}
+      <div className="mt-6">
         <PrimaryButton onClick={onSeeFeed}>
           See my feed <ArrowRight size={18} />
         </PrimaryButton>
