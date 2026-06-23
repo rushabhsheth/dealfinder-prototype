@@ -60,7 +60,7 @@ export default function Settings() {
             ) : (
               <button
                 onClick={() => navigate(tier === "trial" ? "/paywall" : "/trial")}
-                className="text-label font-semibold text-accent-pressed"
+                className="text-label font-semibold text-primary"
               >
                 {tier === "trial" ? "Upgrade" : "Subscribe"}
               </button>

@@ -37,7 +37,7 @@ export default function Paywall() {
     <div>
       <div className="pt-2">
         {/* Recap hero */}
-        <div className="rounded-card bg-gradient-to-b from-accent to-accent-pressed p-6 text-center text-white shadow-card">
+        <div className="rounded-card bg-gradient-to-b from-primary to-primary-pressed p-6 text-center text-white shadow-card">
           <p className="text-label font-semibold uppercase tracking-wide text-white/80">
             Your 14-day trial
           </p>

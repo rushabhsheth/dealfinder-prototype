@@ -62,7 +62,7 @@ export default function TopNav() {
               </button>
               <button
                 onClick={() => navigate("/trial")}
-                className="flex items-center gap-1.5 rounded-button bg-accent px-4 py-2 text-label font-semibold text-white transition-colors hover:bg-accent-pressed"
+                className="flex items-center gap-1.5 rounded-button bg-accent px-4 py-2 text-label font-semibold text-ink transition-colors hover:bg-accent-pressed"
               >
                 <Sparkles size={15} /> Start free trial
               </button>

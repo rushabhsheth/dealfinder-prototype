@@ -16,7 +16,7 @@ export default function TierBadge({ className = "" }: { className?: string }) {
   if (tier === "trial") {
     const daysLeft = Math.max(0, savings.trial.lengthDays - savings.trial.dayOfTrial);
     return (
-      <Pill className={`bg-accent-tint text-accent-pressed ${className}`}>
+      <Pill className={`bg-accent-tint text-ink ${className}`}>
         Trial · {daysLeft} {daysLeft === 1 ? "day" : "days"} left
       </Pill>
     );

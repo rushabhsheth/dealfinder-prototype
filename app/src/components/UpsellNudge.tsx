@@ -12,7 +12,7 @@ export default function UpsellNudge() {
   const { dismissNudge } = useDemo();
 
   return (
-    <div className="relative mb-3 overflow-hidden rounded-card bg-gradient-to-r from-accent to-accent-pressed p-4 text-white shadow-card">
+    <div className="relative mb-3 overflow-hidden rounded-card bg-gradient-to-r from-primary to-primary-pressed p-4 text-white shadow-card">
       <button
         aria-label="Dismiss"
         onClick={dismissNudge}

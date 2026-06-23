@@ -122,7 +122,7 @@ export default function SignIn() {
             />
           </label>
 
-          {error && <p className="mt-3 text-caption text-accent-pressed">{error}</p>}
+          {error && <p className="mt-3 text-caption text-danger">{error}</p>}
 
           <div className="mt-6">
             <PrimaryButton type="submit" variant="ghost" disabled={busy}>

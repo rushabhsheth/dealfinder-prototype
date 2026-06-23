@@ -383,7 +383,7 @@ function ForYou({ tier, navigate }: { tier: string; navigate: (to: string) => vo
       {tier === "trial" && (
         <button
           onClick={() => navigate("/paywall")}
-          className="mt-4 w-full rounded-card border border-dashed border-accent bg-accent-tint/40 p-3 text-center text-label font-semibold text-accent-pressed"
+          className="mt-4 w-full rounded-card border border-dashed border-accent bg-accent-tint/40 p-3 text-center text-label font-semibold text-ink"
         >
           {savings.trial.lengthDays - savings.trial.dayOfTrial} days left in your trial · See plan
         </button>
@@ -517,7 +517,7 @@ function ForYouLocked({ onStartTrial }: { onStartTrial: () => void }) {
     <div className="flex flex-col items-center px-2 pt-8 text-center">
       <div className="relative flex h-20 w-20 items-center justify-center rounded-[28px] bg-primary-tint text-primary">
         <Mail size={36} strokeWidth={1.75} />
-        <span className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-surface bg-accent text-white">
+        <span className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-surface bg-accent text-ink">
           <Sparkles size={14} />
         </span>
       </div>
@@ -529,7 +529,7 @@ function ForYouLocked({ onStartTrial }: { onStartTrial: () => void }) {
 
       <button
         onClick={onStartTrial}
-        className="mt-6 flex w-full items-center justify-center gap-2 rounded-button bg-accent py-3.5 text-label font-semibold text-white active:bg-accent-pressed"
+        className="mt-6 flex w-full items-center justify-center gap-2 rounded-button bg-accent py-3.5 text-label font-semibold text-ink active:bg-accent-pressed"
       >
         Start free trial <ArrowRight size={18} />
       </button>
@@ -569,7 +569,7 @@ function AllDeals({
           </p>
           <button
             onClick={onResubscribe}
-            className="mt-3 inline-flex items-center gap-1.5 rounded-button bg-accent px-4 py-2 text-label font-semibold text-white"
+            className="mt-3 inline-flex items-center gap-1.5 rounded-button bg-accent px-4 py-2 text-label font-semibold text-ink"
           >
             Resubscribe <ArrowRight size={16} />
           </button>

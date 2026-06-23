@@ -133,7 +133,7 @@ export default function FirstScan() {
   if (status === "error") {
     return (
       <div className="flex flex-col items-center text-center">
-        <span className="flex h-16 w-16 items-center justify-center rounded-full bg-urgency-tint text-accent-pressed">
+        <span className="flex h-16 w-16 items-center justify-center rounded-full bg-danger-tint text-danger">
           <AlertCircle size={32} />
         </span>
         <h1 className="mt-6 text-h1 text-ink">We hit a snag scanning</h1>

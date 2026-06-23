@@ -46,9 +46,9 @@ function Reveal({ data, onSeeFeed }: { data: ScanSummaryView; onSeeFeed: () => v
 
   return (
     <>
-      {/* Apricot hero — a spotlight moment */}
+      {/* Lime hero — a spotlight moment */}
       <div className="rounded-card bg-gradient-to-b from-accent-tint to-surface px-6 pb-6 pt-10 text-center">
-        <span className="inline-flex items-center gap-1.5 rounded-badge bg-card px-3 py-1 text-label font-semibold text-accent-pressed shadow-card">
+        <span className="inline-flex items-center gap-1.5 rounded-badge bg-card px-3 py-1 text-label font-semibold text-savings shadow-card">
           <Sparkles size={14} /> Your first scan is done
         </span>
         {foundNothing ? (

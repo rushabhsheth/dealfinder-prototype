@@ -62,7 +62,7 @@ export default function AuthCallback() {
       <div className="flex flex-col items-center text-center">
         {error ? (
           <>
-            <AlertCircle size={48} className="text-accent-pressed" />
+            <AlertCircle size={48} className="text-danger" />
             <p className="mt-4 text-h3 font-semibold text-ink">Couldn't sign in</p>
             <p className="mt-1.5 text-label text-ink-muted">{error}</p>
             <div className="mt-6 w-full max-w-xs">

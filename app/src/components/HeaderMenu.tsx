@@ -124,7 +124,7 @@ export default function HeaderMenu() {
                 <div className="space-y-2 px-1 pb-1">
                   <button
                     onClick={() => go("/trial")}
-                    className="flex w-full items-center justify-center gap-2 rounded-button bg-accent py-3 text-label font-semibold text-white"
+                    className="flex w-full items-center justify-center gap-2 rounded-button bg-accent py-3 text-label font-semibold text-ink"
                   >
                     Start free trial <ArrowRight size={16} />
                   </button>

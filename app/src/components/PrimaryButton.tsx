@@ -9,8 +9,9 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 /**
- * PrimaryButton — teal fill by default. The `accent` (apricot) variant is for
- * spotlight CTAs only: start trial, subscribe (DESIGN_SYSTEM.md).
+ * PrimaryButton — forest-green fill by default. The `accent` (lime) variant is
+ * the bright pop for spotlight CTAs only — start trial, subscribe — and carries
+ * dark ink text for contrast (DESIGN_SYSTEM.md).
  */
 export default function PrimaryButton({
   variant = "primary",
@@ -23,7 +24,7 @@ export default function PrimaryButton({
     "inline-flex h-12 items-center justify-center gap-2 rounded-button px-5 text-label font-semibold transition-colors disabled:opacity-50 disabled:pointer-events-none active:scale-[0.99]";
   const variants: Record<Variant, string> = {
     primary: "bg-primary text-white hover:bg-primary-pressed",
-    accent: "bg-accent text-white hover:bg-accent-pressed",
+    accent: "bg-accent text-ink hover:bg-accent-pressed",
     ghost: "bg-transparent text-primary hover:bg-primary-tint",
   };
   return (

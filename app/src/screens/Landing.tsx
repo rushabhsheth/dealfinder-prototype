@@ -35,8 +35,8 @@ export default function Landing() {
 
   return (
     <div>
-      {/* Hero */}
-      <section className="border-b border-hairline bg-gradient-to-b from-primary-tint/40 to-surface">
+      {/* Hero — light sky band */}
+      <section className="border-b border-hairline bg-gradient-to-b from-sky-tint to-surface">
         <div className="mx-auto w-full max-w-content px-4 py-16 text-center md:px-6 md:py-24 lg:px-8">
           <p className="mx-auto flex w-fit items-center gap-1.5 rounded-badge border border-hairline bg-card px-3 py-1 text-caption font-semibold text-primary">
             <ShieldCheck size={14} /> Read-only · payout-blind ranking
@@ -51,7 +51,7 @@ export default function Landing() {
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <button
               onClick={() => navigate("/trial")}
-              className="flex w-full items-center justify-center gap-2 rounded-button bg-accent px-6 py-3.5 text-label font-semibold text-white transition-colors hover:bg-accent-pressed sm:w-auto"
+              className="flex w-full items-center justify-center gap-2 rounded-button bg-accent px-6 py-3.5 text-label font-semibold text-ink transition-colors hover:bg-accent-pressed sm:w-auto"
             >
               Start free trial <ArrowRight size={18} />
             </button>
@@ -84,8 +84,8 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Public deals teaser */}
-      <section className="border-t border-hairline bg-card/40">
+      {/* Public deals teaser — pale lime band */}
+      <section className="border-t border-hairline bg-accent-tint/30">
         <div className="mx-auto w-full max-w-content px-4 py-16 md:px-6 lg:px-8">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
@@ -109,15 +109,15 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Closing CTA */}
-      <section className="border-t border-hairline">
+      {/* Closing CTA — deep forest band */}
+      <section className="bg-primary">
         <div className="mx-auto w-full max-w-content px-4 py-16 text-center md:px-6 lg:px-8">
-          <h2 className="mx-auto max-w-2xl text-h1 text-ink">
+          <h2 className="mx-auto max-w-2xl text-h1 text-white">
             Stop hunting for codes. Let an agent that works for you do it.
           </h2>
           <button
             onClick={() => navigate("/trial")}
-            className="mx-auto mt-6 flex items-center justify-center gap-2 rounded-button bg-accent px-6 py-3.5 text-label font-semibold text-white transition-colors hover:bg-accent-pressed"
+            className="mx-auto mt-6 flex items-center justify-center gap-2 rounded-button bg-accent px-6 py-3.5 text-label font-semibold text-ink transition-colors hover:bg-accent-pressed"
           >
             Start free trial <ArrowRight size={18} />
           </button>

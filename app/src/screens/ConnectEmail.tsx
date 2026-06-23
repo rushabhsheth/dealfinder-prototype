@@ -148,7 +148,7 @@ function Panel({
           <li key={it} className="flex items-start gap-1.5 text-caption text-ink-muted">
             <span
               className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full ${
-                isSee ? "bg-savings-tint text-savings" : "bg-[#F2E2DA] text-accent-pressed"
+                isSee ? "bg-savings-tint text-savings" : "bg-danger-tint text-danger"
               }`}
             >
               {isSee ? <Check size={11} strokeWidth={3} /> : <X size={11} strokeWidth={3} />}

@@ -6,10 +6,10 @@ import type { DealCategory } from "../types";
  * never used to imply a deal is sponsored or boosted.
  */
 const CATEGORY_TINT: Record<DealCategory, { bg: string; fg: string }> = {
-  travel: { bg: "bg-primary-tint", fg: "text-primary-pressed" },
-  retail: { bg: "bg-accent-tint", fg: "text-accent-pressed" },
-  dining: { bg: "bg-savings-tint", fg: "text-savings" },
-  tech: { bg: "bg-[#EFE7D6]", fg: "text-ink" },
+  travel: { bg: "bg-sky-tint", fg: "text-sky-pressed" },
+  retail: { bg: "bg-accent-tint", fg: "text-[#55671a]" },
+  dining: { bg: "bg-urgency-tint", fg: "text-[#9a6410]" },
+  tech: { bg: "bg-primary-tint", fg: "text-primary-pressed" },
 };
 
 interface Props {

@@ -52,7 +52,7 @@ export default function ConnectCallback() {
           </>
         ) : done ? (
           <>
-            <AlertCircle size={48} className="text-accent-pressed" />
+            <AlertCircle size={48} className="text-danger" />
             <p className="mt-4 text-h3 font-semibold text-ink">Couldn't connect</p>
             <p className="mt-1.5 text-label text-ink-muted">
               {(reason && REASONS[reason]) ?? REASONS.connect_failed}

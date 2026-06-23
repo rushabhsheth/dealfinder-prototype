@@ -45,7 +45,7 @@ export default function ScreenState({
 
   return (
     <div className="flex flex-col items-center justify-center gap-2 px-8 py-16 text-center">
-      <AlertCircle size={24} className="text-accent-pressed" />
+      <AlertCircle size={24} className="text-danger" />
       <p className="mt-1 text-body font-semibold text-ink">{title ?? "Couldn't load this"}</p>
       {message && <p className="max-w-xs text-caption text-ink-muted">{message}</p>}
       {onRetry && (

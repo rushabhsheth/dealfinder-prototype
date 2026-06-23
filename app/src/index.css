@@ -4,21 +4,27 @@
 
 @layer base {
   :root {
-    --teal-600: #0e8c8a;
-    --teal-700: #0b6f6d;
-    --teal-50: #d2ece7;
-    --apricot-500: #f5945c;
-    --apricot-700: #e07a40;
-    --apricot-50: #fbe4cc;
-    --amber-400: #ecc14e;
-    --amber-50: #fbe4cc;
-    --savings-600: #0b6b60;
-    --savings-50: #d2ece7;
-    --ink-900: #27302e;
-    --ink-500: #7a6e5e;
-    --surface: #f6eddc;
+    /* "Fresh Coast" — Going-inspired peppy palette (see DESIGN_SYSTEM.md). */
+    --forest-600: #0c7048;
+    --forest-700: #0a5638;
+    --forest-50: #d9f2e4;
+    --lime-400: #c4ed4e;
+    --lime-500: #aed93a;
+    --lime-50: #eef9c9;
+    --sky-500: #2fa8e0;
+    --sky-600: #1e8fc4;
+    --sky-50: #e1f2fc;
+    --amber-400: #f2a52a;
+    --amber-50: #fbebcd;
+    --danger-600: #d8472b;
+    --danger-50: #fbe6e0;
+    --savings-600: #0b7a4d;
+    --savings-50: #dcf3e7;
+    --ink-900: #16241d;
+    --ink-500: #5c6b62;
+    --surface: #f3f7f3;
     --card: #ffffff;
-    --border: #e7d9c2;
+    --border: #e2eae3;
   }
 
   html,
@@ -41,7 +47,7 @@
   /* Device-preview mode (?frame=phone) restores the neutral backdrop so the
      PhoneFrame reads as a physical device on desktop. */
   body[data-frame="phone"] {
-    background: #e9e2d4;
+    background: #dfe7e0;
   }
 
   /* Tabular figures for all prices & savings so columns align. */

@@ -240,7 +240,7 @@ function StatusBadge({ status }: { status: BrandStatus }) {
     );
   if (status === "paused")
     return (
-      <span className="rounded-badge bg-urgency-tint px-1.5 py-0.5 text-[11px] font-semibold text-accent-pressed">
+      <span className="rounded-badge bg-urgency-tint px-1.5 py-0.5 text-[11px] font-semibold text-[#9a6410]">
         Paused
       </span>
     );
@@ -465,7 +465,7 @@ function BrandSheet({
                     </button>
                     <button
                       onClick={unsubscribe}
-                      className="flex-1 rounded-button bg-accent py-2.5 text-label font-semibold text-white"
+                      className="flex-1 rounded-button bg-danger py-2.5 text-label font-semibold text-white"
                     >
                       Unsubscribe
                     </button>
@@ -518,7 +518,7 @@ function ActionButton({
       onClick={onClick}
       className={`flex w-full items-center justify-center gap-2 rounded-button border py-3 text-label font-semibold ${
         danger
-          ? "border-hairline bg-card text-accent-pressed"
+          ? "border-hairline bg-card text-danger"
           : "border-hairline bg-card text-ink"
       }`}
     >

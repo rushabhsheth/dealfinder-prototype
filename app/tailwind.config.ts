@@ -2,46 +2,58 @@ import type { Config } from "tailwindcss";
 
 /**
  * DealFinder — Tailwind theme
- * "Sunset Tide" palette + type scale from DESIGN_SYSTEM.md.
- * Components should use these named tokens (e.g. bg-primary, text-savings),
- * never raw hex values.
+ * "Fresh Coast" palette + type scale from DESIGN_SYSTEM.md.
+ * A peppy, Going-inspired system: a deep forest green leads, a bright lime is the
+ * pop, and a light sky blue gives sections their own color blocks. Components use
+ * these named tokens (e.g. bg-primary, text-savings, bg-sky-tint), never raw hex.
  */
 const config: Config = {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
-        // Primary — deep teal (the sea)
+        // Primary — deep forest green (the workhorse: nav, links, primary CTAs)
         primary: {
-          DEFAULT: "#0E8C8A", // --teal-600
-          pressed: "#0B6F6D", // --teal-700
-          tint: "#D2ECE7", // --teal-50
+          DEFAULT: "#0C7048", // --forest-600
+          pressed: "#0A5638", // --forest-700
+          tint: "#D9F2E4", // --forest-50
         },
-        // Accent — apricot (the setting sun); spotlight CTAs only
+        // Accent — bright lime (the pop). Always paired with dark ink text.
         accent: {
-          DEFAULT: "#F5945C", // --apricot-500
-          pressed: "#E07A40", // --apricot-700
-          tint: "#FBE4CC", // --apricot-50
+          DEFAULT: "#C4ED4E", // --lime-400
+          pressed: "#AED93A", // --lime-500
+          tint: "#EEF9C9", // --lime-50
         },
-        // Urgency — golden amber; expiry / "ending soon"
+        // Sky — light blue; section color blocks + a calm secondary accent
+        sky: {
+          DEFAULT: "#2FA8E0", // --sky-500
+          pressed: "#1E8FC4", // --sky-600
+          tint: "#E1F2FC", // --sky-50
+        },
+        // Urgency — warm amber; expiry / "ending soon" (pops against the greens)
         urgency: {
-          DEFAULT: "#ECC14E", // --amber-400
-          tint: "#FBE4CC", // --amber-50
+          DEFAULT: "#F2A52A", // --amber-400
+          tint: "#FBEBCD", // --amber-50
         },
-        // Savings — deep teal-green; $ / % saved
+        // Danger — warm red; errors, destructive actions, "what we can't see"
+        danger: {
+          DEFAULT: "#D8472B", // --danger-600
+          tint: "#FBE6E0", // --danger-50
+        },
+        // Savings — money green; $ / % saved
         savings: {
-          DEFAULT: "#0B6B60", // --savings-600
-          tint: "#D2ECE7", // --savings-50
+          DEFAULT: "#0B7A4D", // --savings-600
+          tint: "#DCF3E7", // --savings-50
         },
-        // Text — warm near-black + muted
+        // Text — green-tinted near-black + muted
         ink: {
-          DEFAULT: "#27302E", // --ink-900
-          muted: "#7A6E5E", // --ink-500
+          DEFAULT: "#16241D", // --ink-900
+          muted: "#5C6B62", // --ink-500
         },
         // Surfaces
-        surface: "#F6EDDC", // app background (warm sand)
+        surface: "#F3F7F3", // app background (cool off-white)
         card: "#FFFFFF",
-        hairline: "#E7D9C2", // --border
+        hairline: "#E2EAE3", // --border (cool hairline)
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],

@@ -42,7 +42,7 @@ export default function Privacy() {
             ) : (
               <button
                 onClick={() => navigate("/connect", { state: { connectFlow: true } })}
-                className="text-label font-semibold text-accent-pressed"
+                className="text-label font-semibold text-primary"
               >
                 Connect
               </button>
@@ -89,9 +89,9 @@ export default function Privacy() {
             onClick={() => toast.show("Data deletion requested")}
             className="flex w-full items-center gap-3 px-4 py-3.5 text-left"
           >
-            <Trash2 size={20} className="text-accent-pressed" />
+            <Trash2 size={20} className="text-danger" />
             <span className="min-w-0 flex-1">
-              <span className="block text-body font-semibold text-accent-pressed">
+              <span className="block text-body font-semibold text-danger">
                 Delete my data
               </span>
               <span className="block text-caption text-ink-muted">
