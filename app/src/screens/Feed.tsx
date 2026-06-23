@@ -319,7 +319,9 @@ function ForYou({ tier, navigate }: { tier: string; navigate: (to: string) => vo
             const lead = items[0].deal;
             const isExpanded = expanded.has(brand);
             const visibleOffers = isExpanded ? items : items.slice(0, 3);
-            const hiddenMore = items.length - visibleOffers.length;
+            // Gate on the total count, not what's hidden right now — otherwise the
+            // toggle disappears once expanded and there's no way to collapse.
+            const overflow = items.length - 3;
             return (
               <section
                 key={brand}
@@ -351,12 +353,12 @@ function ForYou({ tier, navigate }: { tier: string; navigate: (to: string) => vo
                   ))}
                 </div>
 
-                {hiddenMore > 0 && (
+                {overflow > 0 && (
                   <button
                     onClick={() => toggleExpand(brand)}
                     className="mt-2 w-full rounded-button py-1.5 text-caption font-semibold text-primary"
                   >
-                    {isExpanded ? "Show fewer" : `Show ${hiddenMore} more offer${hiddenMore === 1 ? "" : "s"}`}
+                    {isExpanded ? "Show fewer" : `Show ${overflow} more offer${overflow === 1 ? "" : "s"}`}
                   </button>
                 )}
               </section>
