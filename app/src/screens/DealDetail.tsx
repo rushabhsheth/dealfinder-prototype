@@ -91,6 +91,18 @@ export default function DealDetail() {
     }
   }
 
+  // Re-open the deal / re-copy the code after redeeming, without re-counting the
+  // savings — so marking it redeemed isn't a dead end if you didn't buy yet.
+  function reopen() {
+    if (!deal) return;
+    if (deal.redeemType === "code") {
+      copyCode();
+    } else if (deal.dealUrl) {
+      window.open(deal.dealUrl, "_blank", "noopener");
+      toast.show(deal.redeemType === "book" ? "Opening booking…" : "Opening deal…");
+    }
+  }
+
   const ctaLabel =
     deal.redeemType === "book"
       ? "Book this rate"
@@ -98,9 +110,27 @@ export default function DealDetail() {
         ? "Open deal"
         : "Copy code & redeem";
 
+  const reopenLabel =
+    deal.redeemType === "code"
+      ? "Copy code again"
+      : deal.redeemType === "book"
+        ? "Open booking again"
+        : "Open deal again";
+
   const redeemControl = redeemed ? (
-    <div className="flex items-center justify-center gap-2 rounded-button bg-savings-tint py-3 text-label font-semibold text-savings">
-      <Check size={18} strokeWidth={3} /> Redeemed · saved {usd(deal.savingsAmount)}
+    <div className="space-y-2">
+      <div className="flex items-center justify-center gap-2 rounded-button bg-savings-tint py-3 text-label font-semibold text-savings">
+        <Check size={18} strokeWidth={3} /> Redeemed · saved {usd(deal.savingsAmount)}
+      </div>
+      {(deal.redeemType === "code" || deal.dealUrl) && (
+        <button
+          onClick={reopen}
+          className="flex w-full items-center justify-center gap-1.5 rounded-button border border-hairline bg-card py-2.5 text-label font-semibold text-ink transition-colors hover:bg-surface"
+        >
+          {deal.redeemType === "code" ? <Copy size={16} /> : <ExternalLink size={16} />}
+          {reopenLabel}
+        </button>
+      )}
     </div>
   ) : (
     <PrimaryButton onClick={onRedeem}>
