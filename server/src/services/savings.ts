@@ -26,6 +26,8 @@ export interface SavingsSummary {
     availableValue: number;
     dealsRedeemed: number;
     offersSurfaced: number;
+    /** Emails read by the most recent scan — the "from N emails scanned" stat. */
+    messagesScanned: number;
     averageSavingPercent: number;
     byCategory: { category: DealCategory; saved: number }[];
     timeline: { date: string; total: number }[];
@@ -59,25 +61,40 @@ export async function getSavingsSummary(
   userId: string,
   now: number = Date.now(),
 ): Promise<SavingsSummary> {
-  const [{ data: offerData, error: oErr }, { data: savingData, error: sErr }] =
-    await Promise.all([
-      adminDb
-        .from("offers")
-        .select("id, savings_amount, savings_percent, category, expires_at")
-        .eq("user_id", userId),
-      adminDb
-        .from("savings")
-        .select("amount_saved, redeemed_at, offer_id, offers(category), brands(brand)")
-        .eq("user_id", userId)
-        .order("redeemed_at", { ascending: true }),
-    ]);
+  const [
+    { data: offerData, error: oErr },
+    { data: savingData, error: sErr },
+    { data: scanData },
+  ] = await Promise.all([
+    adminDb
+      .from("offers")
+      .select("id, savings_amount, savings_percent, category, expires_at")
+      .eq("user_id", userId),
+    adminDb
+      .from("savings")
+      .select("amount_saved, redeemed_at, offer_id, offers(category), brands(brand)")
+      .eq("user_id", userId)
+      .order("redeemed_at", { ascending: true }),
+    // Most recent scan's reach — drives the "from N emails scanned" stat.
+    adminDb
+      .from("scans")
+      .select("messages_scanned")
+      .eq("user_id", userId)
+      .order("started_at", { ascending: false })
+      .limit(1),
+  ]);
   if (oErr) throw new Error(oErr.message);
   if (sErr) throw new Error(sErr.message);
+
+  const messagesScanned = n(
+    (scanData?.[0] as { messages_scanned?: number | string } | undefined)?.messages_scanned,
+  );
 
   return aggregateSavings(
     (offerData ?? []) as OfferLite[],
     (savingData ?? []) as unknown as SavingLite[],
     now,
+    messagesScanned,
   );
 }
 
@@ -89,6 +106,7 @@ export function aggregateSavings(
   offers: OfferLite[],
   savings: SavingLite[],
   now: number = Date.now(),
+  messagesScanned: number = 0,
 ): SavingsSummary {
   const redeemedOfferIds = new Set(
     savings.map((s) => s.offer_id).filter((x): x is string => Boolean(x)),
@@ -145,6 +163,7 @@ export function aggregateSavings(
       availableValue: round2(available),
       dealsRedeemed: savings.length,
       offersSurfaced: offers.length,
+      messagesScanned,
       averageSavingPercent: Math.round(averageSavingPercent * 10) / 10,
       byCategory,
       timeline,

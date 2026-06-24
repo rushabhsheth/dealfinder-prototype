@@ -56,6 +56,14 @@ function Dashboard({
             waiting for you
           </p>
         )}
+        {data.messagesScanned > 0 && (
+          <p className="mt-1 text-caption text-ink-muted">
+            From <span className="font-semibold text-ink">{data.offersSurfaced.toLocaleString()}</span>{" "}
+            offers across{" "}
+            <span className="font-semibold text-ink">{data.messagesScanned.toLocaleString()}</span>{" "}
+            emails scanned
+          </p>
+        )}
         <Sparkline timeline={data.timeline} />
       </div>
 

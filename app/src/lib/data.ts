@@ -98,6 +98,8 @@ export interface SavingsView {
   surfaced: number;
   available: number;
   dealsRedeemed: number;
+  offersSurfaced: number; // how many offers the scan surfaced
+  messagesScanned: number; // emails read by the most recent scan
   averageSavingPercent: number;
   byCategory: { category: DealCategory; saved: number }[];
   timeline: { date: string; saved: number }[];
@@ -112,6 +114,8 @@ export async function loadSavings(): Promise<SavingsView> {
       surfaced: s.surfaced,
       available: s.available,
       dealsRedeemed: s.cumulative.dealsRedeemed,
+      offersSurfaced: s.cumulative.offersSurfaced,
+      messagesScanned: s.cumulative.messagesScanned,
       averageSavingPercent: s.cumulative.averageSavingPercent,
       byCategory: s.cumulative.byCategory,
       timeline: s.cumulative.timeline.map((t) => ({ date: t.date, saved: t.total })),
@@ -131,6 +135,8 @@ export async function loadSavings(): Promise<SavingsView> {
     surfaced,
     available: Math.max(0, surfaced - c.totalSaved),
     dealsRedeemed: c.dealsRedeemed,
+    offersSurfaced: personalizedDeals.length,
+    messagesScanned: savings.firstScan.scannedMessages,
     averageSavingPercent: c.averageSavingPercent,
     byCategory: c.byCategory,
     timeline: c.timeline,

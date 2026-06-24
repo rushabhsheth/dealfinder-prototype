@@ -223,6 +223,7 @@ export interface SavingsResponse {
     availableValue: number;
     dealsRedeemed: number;
     offersSurfaced: number;
+    messagesScanned: number;
     averageSavingPercent: number;
     byCategory: { category: Deal["category"]; saved: number }[];
     timeline: { date: string; total: number }[];
