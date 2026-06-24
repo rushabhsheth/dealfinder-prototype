@@ -45,7 +45,11 @@ const EnvSchema = z.object({
   ANTHROPIC_MODEL: z.string().default("claude-haiku-4-5-20251001"),
 
   // Scan bounds (first scan). Configurable so cost/latency can be tuned.
-  SCAN_MAX_MESSAGES: z.coerce.number().int().positive().default(120),
+  // maxMessages maps to Gmail's single-call `maxResults` ceiling (500), since
+  // listPromoMessageIds doesn't paginate — keep <=500 unless pagination is added.
+  // Higher = more promo coverage over the lookback window, at linear LLM
+  // extraction cost/latency (one Claude call per message, 6 per poll).
+  SCAN_MAX_MESSAGES: z.coerce.number().int().positive().max(500).default(300),
   SCAN_LOOKBACK_DAYS: z.coerce.number().int().positive().default(90),
 });
 
