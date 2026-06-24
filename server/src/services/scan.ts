@@ -170,6 +170,7 @@ async function processMessage(
     redeem_type: offer.redeemType,
     deal_url: offer.dealUrl,
     source_message_id: msg.messageId,
+    source_sent_at: msg.date, // the email's own date → feed's "Sent …" label
     dedup_hash: dedupHash(msg.fromDomain, offer),
   }));
 

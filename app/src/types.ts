@@ -22,6 +22,8 @@ export interface Deal {
   code: string | null;
   /** ISO date. "Today" for the demo is 2026-06-15. */
   expiresAt: string;
+  /** ISO date the offer email landed in the inbox. "Today" is 2026-06-15. */
+  receivedAt: string;
   terms: string;
   whyForYou: string | null;
   relevanceScore: number | null;

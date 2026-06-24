@@ -34,6 +34,7 @@ export interface Offer {
   dealPrice: number | null;
   code: string | null;
   expiresAt: string; // ISO
+  receivedAt: string; // ISO — when the source email was sent ("" if unknown)
   terms: string;
   whyForYou: string | null;
   relevanceScore: number | null;

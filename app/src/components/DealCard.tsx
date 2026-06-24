@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Check, ChevronRight } from "lucide-react";
 import type { Deal } from "../types";
-import { expiryLabel, isUrgent, usd } from "../lib/format";
+import { expiryLabel, isUrgent, receivedLabel, usd } from "../lib/format";
 import { useDemo } from "../state/DemoContext";
 import BrandMark from "./BrandMark";
 import SavingsBadge from "./SavingsBadge";
@@ -61,6 +61,9 @@ export default function DealCard({ deal, showWhy = false, compact = false }: Pro
               <UrgencyBadge expiresAt={deal.expiresAt} />
             ) : (
               <span className="text-caption text-ink-muted">{expiryLabel(deal.expiresAt)}</span>
+            )}
+            {!compact && receivedLabel(deal.receivedAt) && (
+              <span className="text-caption text-ink-muted">· {receivedLabel(deal.receivedAt)}</span>
             )}
           </div>
 

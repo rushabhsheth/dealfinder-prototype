@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Sparkles, ShieldCheck, Lock, ArrowRight, PauseCircle, Mail, EyeOff, ChevronDown, Check } from "lucide-react";
 import { publicDeals, CATEGORY_LABELS, savings, loadPersonalizedDeals } from "../lib/data";
 import { useAsync } from "../lib/useAsync";
-import { usd, expiryLabel, isUrgent } from "../lib/format";
+import { usd, expiryLabel, isUrgent, receivedLabel } from "../lib/format";
 import { gradeForDeal, type GradeLetter } from "../lib/grade";
 import { useDemo } from "../state/DemoContext";
 import type { Deal } from "../types";
@@ -420,6 +420,9 @@ function OfferRow({
             <UrgencyBadge expiresAt={deal.expiresAt} />
           ) : (
             <span className="text-caption text-ink-muted">{expiryLabel(deal.expiresAt)}</span>
+          )}
+          {receivedLabel(deal.receivedAt) && (
+            <span className="text-caption text-ink-muted">· {receivedLabel(deal.receivedAt)}</span>
           )}
         </div>
       </button>

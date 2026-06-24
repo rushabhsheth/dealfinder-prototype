@@ -23,6 +23,7 @@ interface OfferRow {
   deal_price: number | string | null;
   code: string | null;
   expires_at: string | null;
+  source_sent_at: string | null;
   terms: string;
   why_for_you: string | null;
   relevance_score: number | string | null;
@@ -54,6 +55,7 @@ function toPublicOffer(row: OfferRow): Offer {
     dealPrice: num(row.deal_price),
     code: row.code,
     expiresAt: row.expires_at ?? "",
+    receivedAt: row.source_sent_at ?? "",
     terms: row.terms,
     whyForYou: row.why_for_you,
     relevanceScore: num(row.relevance_score),
