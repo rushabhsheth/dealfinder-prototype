@@ -311,6 +311,9 @@ function ForYou({ tier, navigate }: { tier: string; navigate: (to: string) => vo
         <div className="grid grid-cols-1 items-start gap-3 md:grid-cols-2 lg:grid-cols-3">
           {groups.map(({ brand, items }, gi) => {
             const brandSavings = items.reduce((s, r) => s + r.deal.savingsAmount, 0);
+            // Some offers carry only a % (no dollar figure) — fall back to the
+            // top percent so the header never reads "$0 to save".
+            const brandPercent = Math.max(0, ...items.map((r) => r.deal.savingsPercent));
             const lead = items[0].deal;
             const isExpanded = expanded.has(brand);
             const visibleOffers = isExpanded ? items : items.slice(0, 3);
@@ -329,9 +332,23 @@ function ForYou({ tier, navigate }: { tier: string; navigate: (to: string) => vo
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-body font-semibold text-ink">{brand}</p>
                     <p className="mt-0.5 text-caption text-ink-muted">
-                      {items.length} offer{items.length === 1 ? "" : "s"} ·{" "}
-                      <span className="nums font-semibold text-savings">{usd(brandSavings)}</span> to
-                      save
+                      {items.length} offer{items.length === 1 ? "" : "s"}
+                      {brandSavings > 0 ? (
+                        <>
+                          {" · "}
+                          <span className="nums font-semibold text-savings">
+                            {usd(brandSavings)}
+                          </span>{" "}
+                          to save
+                        </>
+                      ) : brandPercent > 0 ? (
+                        <>
+                          {" · "}
+                          <span className="font-semibold text-savings">
+                            up to {Math.round(brandPercent)}% off
+                          </span>
+                        </>
+                      ) : null}
                     </p>
                   </div>
                 </div>

@@ -15,16 +15,21 @@ export function percentOff(percent: number): string {
   return `${percent}% off`;
 }
 
-/** Days from the demo "today" until an ISO expiry date (negative = expired). */
-export function daysUntil(iso: string): number {
-  const target = new Date(`${iso}T12:00:00`);
-  const ms = target.getTime() - DEMO_TODAY.getTime();
-  return Math.round(ms / (1000 * 60 * 60 * 24));
+/** Days from the demo "today" until an expiry date (negative = expired).
+ *  Returns NaN for missing/unparseable input. Accepts date-only or full ISO
+ *  (the backend's `timestamptz`) via parseDate. */
+export function daysUntil(iso: string | null | undefined): number {
+  const target = parseDate(iso);
+  if (!target) return NaN;
+  return Math.round((target.getTime() - DEMO_TODAY.getTime()) / (1000 * 60 * 60 * 24));
 }
 
-/** Human expiry copy: "Ends today", "Ends tomorrow", "Ends in 3 days", "Jun 30". */
-export function expiryLabel(iso: string): string {
+/** Human expiry copy: "Ends today", "Ends tomorrow", "Ends in 3 days", "Ends
+ *  Jun 30". Empty string when the expiry is unknown/unparseable (so cards never
+ *  render "Ends Invalid Date"). */
+export function expiryLabel(iso: string | null | undefined): string {
   const d = daysUntil(iso);
+  if (Number.isNaN(d)) return "";
   if (d < 0) return "Expired";
   if (d === 0) return "Ends today";
   if (d === 1) return "Ends tomorrow";
@@ -53,14 +58,13 @@ export function receivedLabel(iso: string | null | undefined): string {
 }
 
 /** True when a deal is urgent enough to warrant the amber badge. */
-export function isUrgent(iso: string): boolean {
+export function isUrgent(iso: string | null | undefined): boolean {
   const d = daysUntil(iso);
-  return d >= 0 && d <= 3;
+  return !Number.isNaN(d) && d >= 0 && d <= 3;
 }
 
-export function shortDate(iso: string): string {
-  return new Date(`${iso}T12:00:00`).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
+/** "Jun 30" — accepts date-only or full ISO; "" for missing/unparseable. */
+export function shortDate(iso: string | null | undefined): string {
+  const d = parseDate(iso);
+  return d ? d.toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "";
 }
