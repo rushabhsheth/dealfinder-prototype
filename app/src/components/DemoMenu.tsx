@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Wand2, X, RotateCcw, Smartphone } from "lucide-react";
 import { useDemo } from "../state/DemoContext";
@@ -34,6 +34,16 @@ export default function DemoMenu() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { tier, setTier, signedIn, setSignedIn, reset } = useDemo();
+
+  // Escape closes the menu (presenter convenience).
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
 
   // Phone-preview toggle. Operates on the top window so it works both from the
   // normal app (enter preview) and from inside the iframe (exit preview).
